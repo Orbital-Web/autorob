@@ -56,19 +56,21 @@ class Robot:
         self.xyz: Vec3 = np.zeros((3), float)
         self.rpy: Vec3 = np.zeros((3), float)
 
-    def _render(self, *args) -> None:
-        """
-        Renders each link and joint.
-        Joints are drawn using `transform` and `axis`.
-        Links are drawn using `_mesh`, `xyz, `rpy`, and the parent
-        joint's `transform`.
-        """
-        # TODO: write this function when we figure out which modules to use
-        # will probably get called in the main loop, not called by students
-        # might take in additional args like canvas, color, joint sizes, etc.
-        # link xyz and rpy are used to offset where the mesh is drawn from the
-        # joint position in the world frame (in case the mesh itself is offset)
-        pass
+    # FIXME: move following function to a manager class that takes in a robot
+    # and renders it, so students can't accidentally mess this up
+    # def _render(self, *args) -> None:
+    #     """
+    #     Renders each link and joint.
+    #     Joints are drawn using `transform` and `axis`.
+    #     Links are drawn using `_mesh`, `xyz, `rpy`, and the parent
+    #     joint's `transform`.
+    #     """
+    #     # TODO: write this function when we figure out which modules to use
+    #     # will probably get called in the main loop, not called by students
+    #     # might take in additional args like canvas, color, joint sizes, etc.
+    #     # link xyz and rpy are used to offset where the mesh is drawn from the
+    #     # joint position in the world frame (in case the mesh itself is offset)
+    #     pass
 
     # TODO: FK and IK might go in here, or more likely would be a function a student
     # implements in another file which takes a robot as an argument and traverses
