@@ -6,12 +6,12 @@ from pyvista import Actor
 import pyvista as pv
 
 
-
 class BoxObstacleVisual(PyvistaVisualObject, Options):
-    '''
+    """
     A visual component used to generate the plot data of
     the box obstacle
-    '''
+    """
+
     @staticmethod
     def defaultoptions() -> dict:
         """
@@ -24,21 +24,21 @@ class BoxObstacleVisual(PyvistaVisualObject, Options):
             "edge_width": 1,
         }
 
-    
-    def __init__(self, box_info: BoxObstacleInfo, box_state: GenericEntityState, **options):
+    def __init__(
+        self, box_info: BoxObstacleInfo, box_state: GenericEntityState, **options
+    ):
         # initialize base classes
         PyvistaVisualObject.__init__(self)
         Options.__init__(self)
         # initialize using given options
         options["face_color"] = box_info.color
         self.mergeoptions(options)
-        
+
         self.box_info: BoxObstacleInfo = box_info
         self.box_state: GenericEntityState = box_state
-        
+
         self.reset()
-    
-    
+
     def reset(self, **options):
         """
         Resets this component
@@ -49,17 +49,16 @@ class BoxObstacleVisual(PyvistaVisualObject, Options):
         self.edge_color = options["edge_color"]
         self.edge_width = options["edge_width"]
         self.create_plot_data()
-    
-    
+
     def create_plot_data(self, time: float = None) -> Actor:
         """
         Generates the initial plot data
-        
+
         Parameters
         ----------
         time : float
             time of initial plot data
-            
+
         Returns
         _______
         plot_data : Actor
@@ -67,12 +66,12 @@ class BoxObstacleVisual(PyvistaVisualObject, Options):
         """
         if time is None:
             time = self.box_state.time[-1]
-        
+
         xw, yw, zw = self.box_info.dims
-        mesh = pv.Box([-xw/2, xw/2, -yw/2, yw/2, -zw/2, zw/2])
+        mesh = pv.Box([-xw / 2, xw / 2, -yw / 2, yw / 2, -zw / 2, zw / 2])
         mapper = pv.DataSetMapper(mesh)
         self.plot_data = pv.Actor(mapper=mapper)
-        
+
         # set properties
         self.plot_data.prop.SetColor(*self.face_color)
         self.plot_data.prop.SetOpacity(self.face_opacity)
@@ -80,18 +79,17 @@ class BoxObstacleVisual(PyvistaVisualObject, Options):
             self.plot_data.prop.EdgeVisibilityOn()
             self.plot_data.prop.SetLineWidth(self.edge_width)
             self.plot_data.prop.SetEdgeColor(*self.edge_color)
-        
+
         # set coordinate of rectangle to draw
         x, y, z = self.box_state.get_state(time)["state"]
         self.plot_data.SetPosition(x, y, z)
-        
+
         return self.plot_data
-    
-    
+
     def plot(self, time: float = None):
         """
         Updates the plotdata of the BoxObstalce
-        
+
         Parameters
         ----------
         time : float
@@ -104,8 +102,9 @@ class BoxObstacleVisual(PyvistaVisualObject, Options):
         x, y, z = self.box_state.get_state(time)["state"]
         self.plot_data.SetPosition(x, y, z)
 
-
     def __str__(self) -> str:
-        return (f"{repr(self)} with properties:\n" + 
-                f"   box_info:  {repr(self.box_info)}\n"
-                f"   box_state: {repr(self.box_state)}\n")
+        return (
+            f"{repr(self)} with properties:\n"
+            + f"   box_info:  {repr(self.box_info)}\n"
+            f"   box_state: {repr(self.box_state)}\n"
+        )
