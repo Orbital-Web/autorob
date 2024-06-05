@@ -1,8 +1,8 @@
 import numpy as np
+import pyvista as pv
 
 from enum import Enum
 from .types import Vec2, Vec3, Mat4D
-from typing import Any
 
 
 def set_using_kwargs(self, kwargs: dict):
@@ -33,11 +33,8 @@ class Link:
         self.name: str = ""
         self.parent: Joint = None
         self.children: list[Joint] = []
-        # static configurations
-        self.xyz: Vec3 = np.zeros((3), float)
-        self.rpy: Vec3 = np.zeros((3), float)
         # visual
-        self._mesh = None  # TODO: figure out which module to use
+        self.geom: pv.Actor = None
         set_using_kwargs(self, kwargs)
 
 
@@ -78,6 +75,7 @@ class Robot:
         # dynamic configurations
         self.xyz: Vec3 = np.zeros((3), float)
         self.rpy: Vec3 = np.zeros((3), float)
+        self.transform: Mat4D = np.identity(4, float)
         set_using_kwargs(self, kwargs)
 
     # FIXME: move following function to a manager class that takes in a robot
