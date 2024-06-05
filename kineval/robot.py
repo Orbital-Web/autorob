@@ -1,13 +1,34 @@
 import numpy as np
 
 from enum import Enum
-from .types import Vec2, Vec3, Matrix4D
+from .types import Vec2, Vec3, Mat4D
+from typing import Any
+
+
+def set_using_kwargs(self, kwargs: dict):
+    """
+    Sets self.{key} to {var} for {key, var} in `kwargs`.
+    Raises warning if {key} is not an attribute of `self`.
+    """
+    if not kwargs:
+        return
+
+    allowed_keys = set(self.__dict__.keys())
+    self.__dict__.update(
+        (key, val) for key, val in kwargs.items() if key in allowed_keys
+    )
+    # raise warnings
+    rejected_keys = set(kwargs.keys()) - allowed_keys
+    if rejected_keys:
+        print(
+            f"WARNING. The following key(s) were ignored when constructing '{type(self).__name__}': {rejected_keys}"
+        )
 
 
 class Link:
     """A link class for the robot."""
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
         # structure
         self.name: str = ""
         self.parent: Joint = None
@@ -16,7 +37,8 @@ class Link:
         self.xyz: Vec3 = np.zeros((3), float)
         self.rpy: Vec3 = np.zeros((3), float)
         # visual
-        self._mesh  # TODO: figure out which module to use
+        self._mesh = None  # TODO: figure out which module to use
+        set_using_kwargs(self, kwargs)
 
 
 class Joint:
@@ -27,7 +49,7 @@ class Joint:
         REVOLUTE = 1
         PRISMATIC = 2
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
         # structure
         self.name: str = ""
         self.parent: Link = None
@@ -40,13 +62,14 @@ class Joint:
         self.limits: Vec2 | None = None
         # dynamic configurations
         self.theta: float = 0.0
-        self.transform: Matrix4D = np.identity(4, float)
+        self.transform: Mat4D = np.identity(4, float)
+        set_using_kwargs(self, kwargs)
 
 
 class Robot:
     """A bare-minimum class for representing a robot."""
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
         # structure
         self.base: Link = None
         self.endeffector: Link = None
@@ -55,6 +78,7 @@ class Robot:
         # dynamic configurations
         self.xyz: Vec3 = np.zeros((3), float)
         self.rpy: Vec3 = np.zeros((3), float)
+        set_using_kwargs(self, kwargs)
 
     # FIXME: move following function to a manager class that takes in a robot
     # and renders it, so students can't accidentally mess this up
