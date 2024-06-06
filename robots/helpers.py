@@ -77,3 +77,29 @@ def Cylinder(
     # create geometry
     geom = pv.Actor(mapper=pv.DataSetMapper(mesh))
     return geom
+
+
+def Line(origin: Vec3, direction: Vec3, length: float, thickness: int = 1) -> pv.Actor:
+    """Creates a line centered at `origin` and extending towards
+    `direction` for length `length`.
+
+    Args:
+        origin (Vec3): Origin of line.
+        direction (Vec3): Direction of line.
+        length (float): Length of line.
+        thickness (int): Thickness of line.
+
+    Returns:
+        pv.Actor: The generated line geometry.
+    """
+    # ensure inputs are np arrays
+    origin = np.array(origin)
+    direction = np.array(direction)
+
+    # create mesh
+    mesh = pv.Line(origin, origin + length * direction)
+
+    # create geometry
+    geom = pv.Actor(mapper=pv.DataSetMapper(mesh))
+    geom.prop.SetLineWidth(thickness)
+    return geom

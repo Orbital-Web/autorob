@@ -1,5 +1,5 @@
 from kineval import Robot, World, Vec3
-from robots import Cylinder
+from robots import Cylinder, Line
 from pyvistaqt import BackgroundPlotter
 import numpy as np
 
@@ -22,7 +22,7 @@ class Kineval:
         self.joint_color: Vec3 = np.array([1.0, 0.79, 0.0], float)  # color of joints
         self.robot_opacity: float = 0.6  # opacity of robot
         self.joint_opacity: float = 1.0  # opacity of joints
-        self.joint_size: float = 0.15  # radius of joint
+        self.joint_size: float = 0.2  # radius of joint
         # physics options
         self.tick_rate: float = 24  # target no. of updates per second
 
@@ -49,11 +49,16 @@ class Kineval:
 
         # create robot joint geoms and add them to window
         for joint in self.robot.joints:
+            # joint geom
             geom = Cylinder(joint.axis, self.joint_size, 0.5 * self.joint_size)
             geom.prop.SetColor(*self.joint_color)
             geom.prop.SetOpacity(self.joint_opacity)
             self._window.add_actor(geom)
-            joint.geom = geom  # add geom to joint to reference in the future
+            joint.geom = geom  # add geom to joint to reference later
+            # joint axis geom
+            axis_geom = Line(np.zeros((3), float), joint.axis, 2 * self.joint_size, 2)
+            self._window.add_actor(axis_geom)
+            joint.axis_geom = axis_geom  # add axis geom to joint to reference later
 
         # add update to main loop
         tick_millis = 1000 // self.tick_rate  # ms between ticks
@@ -84,5 +89,9 @@ class Kineval:
 
         # set transform of joint geoms
         for joint in self.robot.joints:
+            # joint geom
             geom = joint.geom
             geom.user_matrix = joint.transform
+            # joint axis geom
+            axis_geom = joint.axis_geom
+            axis_geom.user_matrix = joint.transform

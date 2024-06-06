@@ -35,7 +35,7 @@ joint_clavicle_right_yaw = Joint(
     child=link_clavicle_right,
     xyz=np.array([0.3, 0.0, 0.4], float),
     rpy=np.array([np.pi / 2, 0.0, 0.0], float),
-    axis=np.array([0.0, -1.0, 0.0], float),
+    axis=np.array([0.0, 1.0, 0.0], float),
 )
 joint_shoulder_right_yaw = Joint(
     name="shoulder_right_yaw",
