@@ -1,12 +1,17 @@
 from kineval import Kineval, Robot
-
-# from robots.robot_mr2 import robot
 import importlib
 import argparse
 
 
 def load_robot(robot_name: str) -> Robot:
-    """Loads a robot based on the provided robot_name"""
+    """Loads a robot based on the provided robot_name.
+
+    Args:
+        robot_name (str): name of py file with robot to load.
+
+    Returns:
+        Robot: the loaded robot object.
+    """
     return importlib.import_module(f"robots.{robot_name}").robot
 
 
@@ -25,8 +30,5 @@ if __name__ == "__main__":
     robot = load_robot(args.robot)
     kineval = Kineval(robot)
 
-    kineval.open_window()
-    for i in range(100):
-        # robot.joints[1].transform[0, 3] += 0.1
-        kineval.update()
-    kineval.wait_until_window_closed()
+    # run kineval
+    kineval.run()

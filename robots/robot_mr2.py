@@ -1,5 +1,5 @@
 from kineval import Robot, Link, Joint
-from .helpers import Box
+from robots.helpers import Box
 import numpy as np
 
 # links
@@ -79,6 +79,7 @@ joints = [
 
 # robot definiton
 robot = Robot(
+    name="Mr. 2",
     base=link_base,
     endeffector=link_forearm_right,
     links=links,
@@ -86,40 +87,3 @@ robot = Robot(
     xyz=np.zeros((3), float),
     rpy=np.zeros((3), float),
 )
-
-# FIXME: this should be done by the students for FK project
-
-for joint in robot.joints:
-    parent = joint.parent
-    parent.children.append(joint)
-
-    child = joint.child
-    child.parent = joint
-
-from scipy.spatial.transform import Rotation as R
-
-
-def traverse_link(mstack, link: Link):
-    for joint in link.children:
-        traverse_joint(np.copy(mstack), joint)
-
-
-def traverse_joint(mstack, joint: Joint):
-    q = np.identity(4)
-    quat = [*(np.sin(joint.theta / 2) * joint.axis), np.cos(joint.theta / 2)]
-    q[0:3, 0:3] = R.from_quat(quat).as_matrix()
-
-    m = np.identity(4)
-    m[0:3, 0:3] = R.from_euler("XYZ", np.array(joint.rpy)).as_matrix()
-    m[0:3, 3] = joint.xyz
-    m = m @ q
-    mstack = mstack @ m
-    joint.transform = mstack
-    traverse_link(mstack, joint.child)
-
-
-mstack = np.identity(4)
-mstack[0:3, 0:3] = R.from_euler("XYZ", np.array(robot.rpy)).as_matrix()
-mstack[0:3, 3] = robot.xyz
-robot.transform = mstack
-traverse_link(mstack, robot.base)

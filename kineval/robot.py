@@ -2,13 +2,16 @@ import numpy as np
 import pyvista as pv
 
 from enum import Enum
-from .types import Vec2, Vec3, Mat4D
+from kineval.types import Vec2, Vec3, Mat4D
 
 
-def set_using_kwargs(self, kwargs: dict):
-    """
-    Sets self.{key} to {var} for {key, var} in `kwargs`.
+def set_using_kwargs(self, kwargs: dict) -> None:
+    """Sets self.{key} to {var} for {key, var} in `kwargs`.
     Raises warning if {key} is not an attribute of `self`.
+
+    Args:
+        self: object to set the attributes.
+        kwargs (dict): attribute names and their desired values.
     """
     if not kwargs:
         return
@@ -30,11 +33,11 @@ class Link:
 
     def __init__(self, **kwargs) -> None:
         # structure
-        self.name: str = ""
-        self.parent: Joint = None
-        self.children: list[Joint] = []
+        self.name: str = ""  # name of link
+        self.parent: Joint = None  # parent joint
+        self.children: list[Joint] = []  # list of children joints
         # visual
-        self.geom: pv.Actor = None
+        self.geom: pv.Actor = None  # rendered geometry of link
         set_using_kwargs(self, kwargs)
 
 
@@ -42,24 +45,24 @@ class Joint:
     """A joint class for the robot."""
 
     class JointType(Enum):
-        CONTINUOUS = 0
-        REVOLUTE = 1
-        PRISMATIC = 2
+        CONTINUOUS = 0  # rotates around axis, no joint limit
+        REVOLUTE = 1  # rotates around axis, has joint limits
+        PRISMATIC = 2  # slides along axis, has joint limits
 
     def __init__(self, **kwargs) -> None:
         # structure
-        self.name: str = ""
-        self.parent: Link = None
-        self.child: Link = None
-        self.type: Joint.JointType = Joint.JointType.CONTINUOUS
+        self.name: str = ""  # name of joint
+        self.parent: Link = None  # parent link
+        self.child: Link = None  # child link
+        self.type: Joint.JointType = Joint.JointType.CONTINUOUS  # type of joint
         # static configurations
-        self.xyz: Vec3 = np.zeros((3), float)
-        self.rpy: Vec3 = np.zeros((3), float)
-        self.axis: Vec3 = np.array([1, 0, 0], float)
-        self.limits: Vec2 | None = None
+        self.xyz: Vec3 = np.zeros((3), float)  # starting position
+        self.rpy: Vec3 = np.zeros((3), float)  # starting rotation
+        self.axis: Vec3 = np.array([1, 0, 0], float)  # axis the joint moves around
+        self.limits: Vec2 | None = None  # [min, max] theta values or None for no limits
         # dynamic configurations
-        self.theta: float = 0.0
-        self.transform: Mat4D = np.identity(4, float)
+        self.theta: float = 0.0  # configuration of joint
+        self.transform: Mat4D = np.identity(4, float)  # homogenous transform matrix
         set_using_kwargs(self, kwargs)
 
 
@@ -68,32 +71,13 @@ class Robot:
 
     def __init__(self, **kwargs) -> None:
         # structure
-        self.base: Link = None
-        self.endeffector: Link = None
-        self.links: list[Link] = []  # TODO: maybe use a dict, idk yet
-        self.joints: list[Joint] = []  # TODO: maybe use a dict, idk yet
+        self.name: str = ""  # name of robot
+        self.base: Link = None  # base link
+        self.endeffector: Link = None  # endeffector link
+        self.links: list[Link] = []  # links in the robot
+        self.joints: list[Joint] = []  # joints in the robot
         # dynamic configurations
-        self.xyz: Vec3 = np.zeros((3), float)
-        self.rpy: Vec3 = np.zeros((3), float)
-        self.transform: Mat4D = np.identity(4, float)
+        self.xyz: Vec3 = np.zeros((3), float)  # base position
+        self.rpy: Vec3 = np.zeros((3), float)  # base rotation
+        self.transform: Mat4D = np.identity(4, float)  # homogenous transform matrix
         set_using_kwargs(self, kwargs)
-
-    # FIXME: move following function to a manager class that takes in a robot
-    # and renders it, so students can't accidentally mess this up
-    # def _render(self, *args) -> None:
-    #     """
-    #     Renders each link and joint.
-    #     Joints are drawn using `transform` and `axis`.
-    #     Links are drawn using `_mesh`, `xyz, `rpy`, and the parent
-    #     joint's `transform`.
-    #     """
-    #     # TODO: write this function when we figure out which modules to use
-    #     # will probably get called in the main loop, not called by students
-    #     # might take in additional args like canvas, color, joint sizes, etc.
-    #     # link xyz and rpy are used to offset where the mesh is drawn from the
-    #     # joint position in the world frame (in case the mesh itself is offset)
-    #     pass
-
-    # TODO: FK and IK might go in here, or more likely would be a function a student
-    # implements in another file which takes a robot as an argument and traverses
-    # it, modifying each joint's `transform`

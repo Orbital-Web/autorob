@@ -1,68 +1,79 @@
-from .robot import Robot
+from kineval import Robot, Vec3
 from robots.helpers import Cylinder
-import pyvista as pv
+from pyvistaqt import BackgroundPlotter
 import numpy as np
 
-from .types import Vec3
-
-# EXAMPLE: from project3 import fk_robot
-# from project4 import check_collision
+# student implementations
+from kineval.init_robot import init_robot
+from kineval.forward_kinematics import traverse_robot_FK
 
 
 class Kineval:
     """A manager class for handling rendering and updates."""
 
     def __init__(self, robot: Robot) -> None:
-        self.robot: Robot = robot
-        self.obstacles: list = []
-        self._plotter: pv.Plotter = None
+        # scene objects
+        self.robot: Robot = robot  # robot in scene
+        self.obstacles: list = []  # obstacles in scene
+        # internal managers
+        self._window: BackgroundPlotter = None  # window manager
         # visual options
-        self.robot_color: Vec3 = np.array([0.0, 0.14, 0.3], float)
-        self.joint_color: Vec3 = np.array([1.0, 0.79, 0.0], float)
-        self.robot_opacity: float = 0.8
-        self.joint_opacity: float = 1.0
-        self.joint_size: float = 0.15
+        self.robot_color: Vec3 = np.array([0.0, 0.14, 0.3], float)  # color of robot
+        self.joint_color: Vec3 = np.array([1.0, 0.79, 0.0], float)  # color of joints
+        self.robot_opacity: float = 0.6  # opacity of robot
+        self.joint_opacity: float = 1.0  # opacity of joints
+        self.joint_size: float = 0.15  # radius of joint
+        # physics options
+        self.tick_rate: float = 24  # target no. of updates per second
 
-    def open_window(self):
-        """Run once to open a window showing the scene"""
-        if self._plotter is None or self._plotter._closed:
-            # create window
-            self._plotter = pv.Plotter()
-            self._plotter.set_background("white")
-            self._plotter.add_axes()
+        # run initializations
+        self.initialize()
 
-            # add robot geom to plotter
-            if self.robot:
-                for link in self.robot.links:
-                    geom = link.geom
-                    geom.prop.SetColor(*self.robot_color)
-                    geom.prop.SetOpacity(self.robot_opacity)
-                    self._plotter.add_actor(geom)
+    def initialize(self) -> None:
+        """Runs all the student initialization functions."""
+        init_robot(self.robot)
 
-                for joint in self.robot.joints:
-                    geom = Cylinder(joint.axis, self.joint_size, 0.5 * self.joint_size)
-                    geom.prop.SetColor(*self.joint_color)
-                    geom.prop.SetOpacity(self.joint_opacity)
-                    self._plotter.add_actor(geom)
-                    joint.geom = geom  # add to joint to reference in the future
+    def run(self) -> None:
+        """Runs the full cycle of the program."""
+        # create window
+        self._window = BackgroundPlotter(show=True, title="Kineval")
+        self._window.set_background("white")
+        self._window.add_axes()
 
-            self._plotter.show(interactive_update=True)  # interactive_update=True
+        # add robot link geoms to window
+        for link in self.robot.links:
+            geom = link.geom
+            geom.prop.SetColor(*self.robot_color)
+            geom.prop.SetOpacity(self.robot_opacity)
+            self._window.add_actor(geom)
 
-    def wait_until_window_closed(self):
-        """Prevents the window from automatically closing."""
-        self._plotter.show()
+        # create robot joint geoms and add them to window
+        for joint in self.robot.joints:
+            geom = Cylinder(joint.axis, self.joint_size, 0.5 * self.joint_size)
+            geom.prop.SetColor(*self.joint_color)
+            geom.prop.SetOpacity(self.joint_opacity)
+            self._window.add_actor(geom)
+            joint.geom = geom  # add geom to joint to reference in the future
+
+        # add update to main loop
+        tick_millis = 1000 // self.tick_rate  # ms between ticks
+        self._window.add_callback(self.update, interval=tick_millis)
+
+        # open window
+        self._window.app.exec_()
 
     def update(self) -> None:
-        """The main update loop for the world."""
-        # EXAMPLE: fk_robot(self.robot)
-        # collisions = check_collision(self.robot)
-        # call other student implemented functions
-        if self._plotter:
-            self.update_robot_render()
-            self._plotter.update()
+        """Runs all the student functions and visual updates."""
+        # run student functions
+        traverse_robot_FK(self.robot)
+
+        # update visuals
+        self.update_robot_render()
+        self._window.update()
 
     def update_robot_render(self) -> None:
         """Updates the robot on the window."""
+        # set transform of link geoms
         for link in self.robot.links:
             geom = link.geom
             geom.user_matrix = (
@@ -71,6 +82,7 @@ class Kineval:
                 else link.parent.transform
             )
 
+        # set transform of joint geoms
         for joint in self.robot.joints:
             geom = joint.geom
             geom.user_matrix = joint.transform

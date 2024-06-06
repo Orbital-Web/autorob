@@ -1,4 +1,6 @@
 -e .    # adds root directory to path
 nptyping==2.5.0
 numpy==1.26.4
+PyQt5==5.15.10
 pyvista==0.43.8
+pyvistaqt==0.11.0
