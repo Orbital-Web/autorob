@@ -1,4 +1,4 @@
-from kineval import Kineval, Robot
+from kineval import Kineval, Robot, World
 import importlib
 import argparse
 
@@ -28,7 +28,8 @@ if __name__ == "__main__":
 
     # initialize kineval
     robot = load_robot(args.robot)
-    kineval = Kineval(robot)
+    world = World()  # TODO: replace with load_world function in the future
+    kineval = Kineval(robot, world)
 
     # run kineval
     kineval.run()

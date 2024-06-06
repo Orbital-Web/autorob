@@ -1,8 +1,7 @@
+from kineval import Vec2, Vec3, Mat4D
 import numpy as np
 import pyvista as pv
-
 from enum import Enum
-from kineval.types import Vec2, Vec3, Mat4D
 
 
 def set_using_kwargs(self, kwargs: dict) -> None:

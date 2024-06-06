@@ -1,8 +1,7 @@
+from kineval import Vec3
 from scipy.spatial.transform import Rotation as R
 import numpy as np
 import pyvista as pv
-
-from kineval import Vec3
 
 
 def transform_mesh(mesh: pv.DataSet, xyz: Vec3 = None, rpy: Vec3 = None) -> pv.DataSet:

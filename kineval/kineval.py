@@ -1,5 +1,5 @@
-from kineval import Robot, Vec3
-from robots.helpers import Cylinder
+from kineval import Robot, World, Vec3
+from robots import Cylinder
 from pyvistaqt import BackgroundPlotter
 import numpy as np
 
@@ -11,10 +11,10 @@ from kineval.forward_kinematics import traverse_robot_FK
 class Kineval:
     """A manager class for handling rendering and updates."""
 
-    def __init__(self, robot: Robot) -> None:
+    def __init__(self, robot: Robot, world: World) -> None:
         # scene objects
-        self.robot: Robot = robot  # robot in scene
-        self.obstacles: list = []  # obstacles in scene
+        self.robot: Robot = robot  # robot
+        self.world: World = world  # world container
         # internal managers
         self._window: BackgroundPlotter = None  # window manager
         # visual options

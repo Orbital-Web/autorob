@@ -1,5 +1,5 @@
 from kineval import Robot, Link, Joint
-from robots.helpers import Box
+from robots import Box
 import numpy as np
 
 # links
