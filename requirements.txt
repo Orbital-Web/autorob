@@ -1,3 +1,0 @@
--e .    # adds root directory to path
-nptyping==2.5.0
-numpy==1.26.4
