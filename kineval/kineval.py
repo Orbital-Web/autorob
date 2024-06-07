@@ -1,4 +1,13 @@
-from kineval import Robot, World, move_robot, Vec3
+from kineval import (
+    Robot,
+    World,
+    move_robot,
+    turn_robot,
+    traverse_up_joint,
+    traverse_down_joint,
+    traverse_adjacent_joint,
+    Vec3,
+)
 from robots import Cylinder, Line
 from pyvistaqt import BackgroundPlotter
 from PyQt5.QtGui import QKeyEvent
@@ -54,11 +63,13 @@ class KinevalRenderer(BackgroundPlotter):
         self.__add_world()
 
         self.detect_keys = {
-            Qt.Key_W,
-            Qt.Key_S,
-            Qt.Key_A,
-            Qt.Key_D,
-        }  # set of keys to detect
+            Qt.Key_W,  # front
+            Qt.Key_S,  # back
+            Qt.Key_A,  # left
+            Qt.Key_D,  # right
+            Qt.Key_Q,  # turn left
+            Qt.Key_E,  # turn right
+        }  # set of keys to detect (for continuous pressing)
         self.pressed_keys = set()  # currently pressed keys
 
     def __add_robot(self):
@@ -126,6 +137,14 @@ class KinevalRenderer(BackgroundPlotter):
         if key in self.detect_keys and key not in self.pressed_keys:
             self.pressed_keys.add(key)
 
+        # detect only first key down
+        elif key == Qt.Key_J:  # traverse up joint
+            traverse_up_joint(self.robot)
+        elif key == Qt.Key_K:  # traverse down joint
+            traverse_down_joint(self.robot)
+        elif key == Qt.Key_L:  # traverse adjacent joint
+            traverse_adjacent_joint(self.robot)
+
     def keyReleaseEvent(self, event: QKeyEvent):
         """Removes key from `pressed_key` if it has been
         released.
@@ -156,6 +175,9 @@ class Kineval:
         # run student initialization functions
         init_robot(self.robot)
 
+        # other initializations
+        self.robot.selected = self.robot.base.children[0]
+
     def run(self) -> None:
         """Starts the program."""
         # create renderer
@@ -184,6 +206,12 @@ class Kineval:
             move_robot(self.robot, [1, 0], 5 / self.tick_rate)
         elif Qt.Key_A in self.renderer.pressed_keys:
             move_robot(self.robot, [-1, 0], 5 / self.tick_rate)
+
+        # turn robot with QE
+        if Qt.Key_Q in self.renderer.pressed_keys:
+            turn_robot(self.robot, -1, 3 / self.tick_rate)
+        elif Qt.Key_E in self.renderer.pressed_keys:
+            turn_robot(self.robot, 1, 3 / self.tick_rate)
 
         # update visuals
         self.renderer.update_visuals()

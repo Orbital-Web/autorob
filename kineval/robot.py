@@ -4,18 +4,25 @@ import pyvista as pv
 from enum import Enum
 
 
-def set_using_kwargs(self, kwargs: dict) -> None:
+def set_using_kwargs(self, kwargs: dict, exclude: set[str] = None) -> None:
     """Sets self.{key} to {var} for {key, var} in `kwargs`.
-    Raises warning if {key} is not an attribute of `self`.
+    Raises warning if {key} is not an attribute of `self`
+    or is in `exclude`.
 
     Args:
         self: object to set the attributes.
         kwargs (dict): attribute names and their desired values.
+        exclude (set, optional): attributes to exclude.
     """
     if not kwargs:
         return
 
+    # get set of modifiable attributes
     allowed_keys = set(self.__dict__.keys())
+    if exclude:
+        allowed_keys -= exclude
+
+    # update attributes
     self.__dict__.update(
         (key, val) for key, val in kwargs.items() if key in allowed_keys
     )
@@ -62,7 +69,10 @@ class Joint:
         # dynamic configurations
         self.theta: float = 0.0  # configuration of joint
         self.transform: Mat4D = np.identity(4, float)  # homogenous transform matrix
-        set_using_kwargs(self, kwargs)
+        # visual
+        self.geom: pv.Actor = None  # rendered geometry of joint
+        self.axis_geom: pv.Actor = None  # rendered geometry of joint axis
+        set_using_kwargs(self, kwargs, exclude={"geom", "axis_geom"})
 
 
 class Robot:
@@ -80,4 +90,6 @@ class Robot:
         self.rpy: Vec3 = np.zeros((3), float)  # base rotation
         self.transform: Mat4D = np.identity(4, float)  # homogenous transform matrix
         self.facing: Vec3 = np.array([1, 0, 0], float)  # unit vector of front direction
-        set_using_kwargs(self, kwargs)
+        # ui
+        self.selected: Joint = None  # currently selected joint on UI
+        set_using_kwargs(self, kwargs, exclude={"facing", "selected"})
