@@ -11,6 +11,7 @@ def traverse_robot_FK(robot: Robot) -> None:
     """Traverses the robot kinematic chain and sets the
     `transform` property of the robot and the joints.
     May call `tranverse_link_FK` and `traverse_joint_FK`.
+    Also modifies the robot's `facing` vector.
 
     Args:
         robot (Robot): The robot to do forward kinematics on.

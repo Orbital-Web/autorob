@@ -79,4 +79,5 @@ class Robot:
         self.xyz: Vec3 = np.zeros((3), float)  # base position
         self.rpy: Vec3 = np.zeros((3), float)  # base rotation
         self.transform: Mat4D = np.identity(4, float)  # homogenous transform matrix
+        self.facing: Vec3 = np.array([1, 0, 0], float)  # unit vector of front direction
         set_using_kwargs(self, kwargs)
