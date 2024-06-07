@@ -33,6 +33,9 @@ class KinevalVisualSettings:
     joint_color: Vec3 = field(
         default_factory=lambda: np.array([1.0, 0.79, 0.0], float)
     )  # color of joints (default yellow)
+    selection_color: Vec3 = field(
+        default_factory=lambda: np.array([1.0, 0.0, 0.0], float)
+    )  # color of selected joints (default red)
     robot_opacity: float = 0.6  # opacity of robot
     joint_opacity: float = 1.0  # opacity of joints
     joint_size: float = 0.2  # radius of joint
@@ -110,18 +113,25 @@ class KinevalRenderer(BackgroundPlotter):
 
     def update_visuals(self):
         """Updates all the objects on the window."""
-        # update link transformations
+        # update link visuals
         for link in self.robot.links:
+            # update link transformation
             link.geom.user_matrix = (
                 self.robot.transform
                 if link == self.robot.base
                 else link.parent.transform
             )
 
-        # update joint transformations
+        # update joint visuals
         for joint in self.robot.joints:
+            # update joint and axis transformation
             joint.geom.user_matrix = joint.transform
             joint.axis_geom.user_matrix = joint.transform
+            # reset color
+            joint.geom.prop.SetColor(*self.settings.joint_color)
+
+        # update color of selected joint
+        self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
 
         # update window
         self.update()
@@ -176,7 +186,7 @@ class Kineval:
         init_robot(self.robot)
 
         # other initializations
-        self.robot.selected = self.robot.base.children[0]
+        self.robot.selected = self.robot.joints[0]
 
     def run(self) -> None:
         """Starts the program."""

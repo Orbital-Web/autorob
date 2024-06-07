@@ -38,12 +38,44 @@ def turn_robot(robot: Robot, direction: float, speed: float):
 
 
 def traverse_up_joint(robot: Robot):
-    pass
+    """Selects the next joint down the kinematic
+    hierarchy.
+
+    Args:
+        robot (Robot): The robot to traverse.
+    """
+    # select first child joint of child link
+    if robot.selected.child.children:
+        robot.selected = robot.selected.child.children[0]
 
 
 def traverse_down_joint(robot: Robot):
-    pass
+    """Selects the previous joint down the kinematic
+    hierarchy.
+
+    Args:
+        robot (Robot): The robot to traverse.
+    """
+    # select parent joint of parent link
+    if robot.selected.parent.parent:
+        robot.selected = robot.selected.parent.parent
 
 
 def traverse_adjacent_joint(robot: Robot):
-    pass
+    """Selects the adjacent joint of the same link.
+
+    Args:
+        robot (Robot): The robot to traverse.
+    """
+    # ignore if link only has one children
+    child_joints = robot.selected.parent.children
+    n_children = len(child_joints)
+    if n_children <= 1:
+        return
+
+    # find joint
+    for i, joint in enumerate(child_joints):
+        if joint == robot.selected:
+            break
+    # go to next joint (or wrap to first joint)
+    robot.selected = child_joints[(i + 1) % n_children]
