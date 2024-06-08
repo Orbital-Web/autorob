@@ -55,22 +55,22 @@ Once Conda is installed, you can create the environment using the provided `envi
 ## Usage
 ### MR2 demo example
    You can run the mr2 demo using following command
-    ```sh
+    ```
     python3 mr2_demo.py
     ```
 ### PR2 example
    You can run the mr2 demo using following command
-    ```sh
+    ```
     python3 mr2_demo.py
     ```
 ### PR2 astar example
    You can run the mr2 demo using following command
-    ```sh
+    ```
     python3 astar_template.py
     ```
 ### PR2 rrt example
    You can run the mr2 demo using following command
-    ```sh
+    ```
     python3 rrt_template.py
     ```
 ### TODO
