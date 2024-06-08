@@ -6,6 +6,7 @@ from kineval import (
     traverse_up_joint,
     traverse_down_joint,
     traverse_adjacent_joint,
+    apply_control,
     Vec3,
 )
 from robots import Cylinder, Line
@@ -55,6 +56,17 @@ class KinevalRenderer(BackgroundPlotter):
         self.robot: Robot = robot  # robot
         self.world: World = world  # world container
         self.settings: KinevalVisualSettings = visual_settings  # settings
+        self.detect_keys = {
+            Qt.Key_W,  # front
+            Qt.Key_S,  # back
+            Qt.Key_A,  # left
+            Qt.Key_D,  # right
+            Qt.Key_Q,  # turn left
+            Qt.Key_E,  # turn right
+            Qt.Key_U,  # apply positive control
+            Qt.Key_I,  # apply negative control
+        }  # set of keys to detect (for continuous pressing)
+        self.pressed_keys = set()  # currently pressed keys
 
         # initialize window
         super().__init__(show=True, *args, **kwargs)
@@ -64,16 +76,6 @@ class KinevalRenderer(BackgroundPlotter):
         # add objects to window
         self.__add_robot()
         self.__add_world()
-
-        self.detect_keys = {
-            Qt.Key_W,  # front
-            Qt.Key_S,  # back
-            Qt.Key_A,  # left
-            Qt.Key_D,  # right
-            Qt.Key_Q,  # turn left
-            Qt.Key_E,  # turn right
-        }  # set of keys to detect (for continuous pressing)
-        self.pressed_keys = set()  # currently pressed keys
 
     def __add_robot(self):
         """Creates and adds the robot link and joint geometries
@@ -222,6 +224,12 @@ class Kineval:
             turn_robot(self.robot, -1, 3 / self.tick_rate)
         elif Qt.Key_E in self.renderer.pressed_keys:
             turn_robot(self.robot, 1, 3 / self.tick_rate)
+
+        # apply control to joint with UI
+        if Qt.Key_U in self.renderer.pressed_keys:
+            apply_control(self.robot, -1, 1 / self.tick_rate)
+        elif Qt.Key_I in self.renderer.pressed_keys:
+            apply_control(self.robot, 1, 1 / self.tick_rate)
 
         # update visuals
         self.renderer.update_visuals()

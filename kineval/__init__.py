@@ -7,5 +7,6 @@ from .controlls import (
     traverse_up_joint,
     traverse_down_joint,
     traverse_adjacent_joint,
+    apply_control,
 )
 from .kineval import Kineval, KinevalVisualSettings

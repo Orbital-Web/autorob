@@ -79,3 +79,17 @@ def traverse_adjacent_joint(robot: Robot):
             break
     # go to next joint (or wrap to first joint)
     robot.selected = child_joints[(i + 1) % n_children]
+
+
+def apply_control(robot: Robot, direction: float, speed: float):
+    """Modifies the robot's selected joint's theta in the
+    specified direction. Turns the robot's selected joint
+    if the joint is continuous or revolute. Extends or
+    retracts the joint if the joint is prismatic.
+
+    Args:
+        robot (Robot): The robot to control.
+        direction (float): Control direction.
+        speed (float): Speed in rad/tick or m/tick.
+    """
+    robot.selected.theta += direction * speed
