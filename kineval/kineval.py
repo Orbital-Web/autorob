@@ -52,7 +52,7 @@ class KinevalRenderer(BackgroundPlotter):
         visual_settings: KinevalVisualSettings,
         *args,
         **kwargs,
-    ):
+    ) -> None:
         self.robot: Robot = robot  # robot
         self.world: World = world  # world container
         self.settings: KinevalVisualSettings = visual_settings  # settings
@@ -73,11 +73,15 @@ class KinevalRenderer(BackgroundPlotter):
         self.set_background(self.settings.bg_color)
         self.add_axes()
 
+        # control camera orbit
+        self.iren.add_observer("InteractionEvent", self.on_camera_move)
+        self.previous_camera_pos = self.camera.position  # last valid camera position
+
         # add objects to window
         self.__add_robot()
         self.__add_world()
 
-    def __add_robot(self):
+    def __add_robot(self) -> None:
         """Creates and adds the robot link and joint geometries
         to the window."""
         # add robot link geoms to window
@@ -105,15 +109,15 @@ class KinevalRenderer(BackgroundPlotter):
             self.add_actor(axis_geom)
             joint.axis_geom = axis_geom  # add axis geom to joint to reference later
 
-    def __add_world(self):
+    def __add_world(self) -> None:
         """Adds terrain and obstacle geometries to the window."""
         pass
 
-    def open_window(self):
+    def open_window(self) -> None:
         """Opens the window."""
         self.app.exec_()
 
-    def update_visuals(self):
+    def update_visuals(self) -> None:
         """Updates all the objects on the window."""
         # update link visuals
         for link in self.robot.links:
@@ -138,7 +142,7 @@ class KinevalRenderer(BackgroundPlotter):
         # update window
         self.update()
 
-    def keyPressEvent(self, event: QKeyEvent):
+    def keyPressEvent(self, event: QKeyEvent) -> None:
         """Adds key to `pressed_key` if it has been
         pressed and is in `detect_keys`.
 
@@ -157,7 +161,7 @@ class KinevalRenderer(BackgroundPlotter):
         elif key == Qt.Key_L:  # traverse adjacent joint
             traverse_adjacent_joint(self.robot)
 
-    def keyReleaseEvent(self, event: QKeyEvent):
+    def keyReleaseEvent(self, event: QKeyEvent) -> None:
         """Removes key from `pressed_key` if it has been
         released.
 
@@ -167,6 +171,23 @@ class KinevalRenderer(BackgroundPlotter):
         key = event.key()  # released key
         if key in self.pressed_keys:
             self.pressed_keys.remove(key)
+
+    def on_camera_move(self, caller, event) -> None:
+        """Ensures the camera pivots around the robot base."""
+        # update camera to pivot base
+        center = self.robot.base.geom.GetCenter()
+        self.camera.SetFocalPoint(center)
+
+        # Prevent camera from rolling
+        self.camera.SetViewUp([0, 0, 1])
+
+        # Ensure camera does not orbit past the center
+        view_vec = np.array(self.camera.position) - center
+        view_vec /= np.linalg.norm(view_vec)
+        if abs(view_vec[2]) > 0.995:
+            self.camera.SetPosition(self.previous_camera_pos)
+        else:
+            self.previous_camera_pos = self.camera.position
 
 
 class Kineval:
@@ -183,6 +204,7 @@ class Kineval:
         self.world: World = world  # world container
         self.visual_settings: KinevalVisualSettings = visual_settings  # window settings
         self.tick_rate: float = tick_rate  # target no. of updates per second
+        self.renderer: KinevalRenderer = None  # render window manager
 
         # run student initialization functions
         init_robot(self.robot)
@@ -193,7 +215,7 @@ class Kineval:
     def run(self) -> None:
         """Starts the program."""
         # create renderer
-        self.renderer: KinevalRenderer = KinevalRenderer(
+        self.renderer = KinevalRenderer(
             self.robot, self.world, self.visual_settings, title="Kineval"
         )
 
@@ -206,9 +228,6 @@ class Kineval:
 
     def update(self) -> None:
         """Runs all the student functions and visual updates."""
-        # run student functions
-        traverse_robot_FK(self.robot)
-
         # control robot with WSAD
         if Qt.Key_W in self.renderer.pressed_keys:
             move_robot(self.robot, [0, 1], 5 / self.tick_rate)
@@ -230,6 +249,9 @@ class Kineval:
             apply_control(self.robot, -1, 1 / self.tick_rate)
         elif Qt.Key_I in self.renderer.pressed_keys:
             apply_control(self.robot, 1, 1 / self.tick_rate)
+
+        # run student functions
+        traverse_robot_FK(self.robot)
 
         # update visuals
         self.renderer.update_visuals()

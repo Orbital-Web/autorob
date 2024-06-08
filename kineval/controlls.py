@@ -1,12 +1,14 @@
 from kineval import Robot, Vec2
 from scipy.spatial.transform import Rotation as R
 import numpy as np
+from pyvista.plotting.camera import Camera
 
 
 def move_robot(robot: Robot, direction: Vec2, speed: float):
     """Moves the robot in the specified direction.
     Increments `robot.xyz` by some vector v with magnitude
     `speed`, depending on `robot.facing` and `direction`.
+    Also moves the camera.
 
     Args:
         robot (Robot): The robot to move.
@@ -17,8 +19,20 @@ def move_robot(robot: Robot, direction: Vec2, speed: float):
     facing = robot.facing  # vector of forward direction
     lateral = np.cross(up, facing)  # vector of right direction
 
-    robot.xyz += direction[0] * speed * facing
-    robot.xyz += direction[1] * speed * lateral
+    # update robot position
+    dxyz = direction[0] * speed * facing + direction[1] * speed * lateral
+    robot.xyz += dxyz
+
+    # update camera position
+    # camera_position = camera.position
+    # camera.SetPosition(
+    #     [
+    #         camera_position[0] + dxyz[0],
+    #         camera_position[1] + dxyz[1],
+    #         camera_position[2] + dxyz[2],
+    #     ]
+    # )
+    # camera.SetFocalPoint(robot.base.geom.GetCenter())
 
 
 def turn_robot(robot: Robot, direction: float, speed: float):
