@@ -84,6 +84,4 @@ robot = Robot(
     endeffector=link_forearm_right,
     links=links,
     joints=joints,
-    xyz=np.zeros((3), float),
-    rpy=np.zeros((3), float),
 )

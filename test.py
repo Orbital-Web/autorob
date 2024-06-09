@@ -1,4 +1,6 @@
-from kineval import Kineval, KinevalSettings, Robot, World
+from PyQt5.QtWidgets import QApplication
+from kineval.renderer import KinevalWindow
+from kineval import Kineval, KinevalVisualSettings, Robot, World
 import importlib
 import argparse
 
@@ -16,6 +18,8 @@ def load_robot(robot_name: str) -> Robot:
 
 
 if __name__ == "__main__":
+    app = QApplication([])
+
     # parse cli arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -29,8 +33,8 @@ if __name__ == "__main__":
     # initialize kineval
     robot = load_robot(args.robot)
     world = World()  # TODO: replace with load_world function in the future
-    settings = KinevalSettings()  # use default settings
-    kineval = Kineval(robot, world, settings)
+    visual_settings = KinevalVisualSettings()  # use default settings
+    window = KinevalWindow(robot, world, visual_settings)
 
-    # run kineval
-    kineval.run()
+    window.show()
+    app.exec_()

@@ -9,4 +9,5 @@ from .controlls import (
     traverse_adjacent_joint,
     apply_control,
 )
-from .kineval import Kineval, KinevalVisualSettings
+from .renderer import KinevalWindow, KinevalWindowSettings
+from .kineval import Kineval, KinevalSettings
