@@ -115,7 +115,7 @@ class CollapsibleWidget(QGroupBox):
         self.setFlat(True)
 
         # create a toggle button
-        self.toggle_button = QToolButton(text=title, checkable=True, checked=True)
+        self.toggle_button = QToolButton(text=title, checkable=True)
         self.toggle_button.setStyleSheet("QToolButton { border: none; }")
         self.toggle_button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.toggle_button.setArrowType(Qt.DownArrow)

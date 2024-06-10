@@ -16,9 +16,9 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QVBoxLayout,
     QFormLayout,
+    QScrollArea,
     QWidget,
     QDockWidget,
-    QLabel,
     QCheckBox,
     QLineEdit,
 )
@@ -145,6 +145,13 @@ class KinevalWindow(QMainWindow):
             )
             self.plotter.add_actor(joint.axis_geom)
 
+        # highlight selected joint
+        self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
+
+        # set up camera
+        center = self.robot.base.geom.GetCenter()
+        self.plotter.camera.SetFocalPoint(center)
+
     def __add_world_to_plotter(self) -> None:
         """Creates and adds the terrain and obstacle geometries
         to the plotter widget."""
@@ -162,53 +169,41 @@ class KinevalWindow(QMainWindow):
         )
         self.addDockWidget(Qt.RightDockWidgetArea, self.gui)
 
+        # create scroll area
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setMinimumWidth(288)
+        self.gui.setWidget(scroll)
+
         # create top level group for all settings
-        control_panel = CollapsibleWidget("Kineval", QVBoxLayout)
-        self.gui.setWidget(control_panel)
+        control_panel = CollapsibleWidget("Settings", QVBoxLayout)
+        scroll.setWidget(control_panel)
 
-        # example below for sub-groups
-        g1 = control_panel.add_group("Test", QVBoxLayout)
-        g1.content.addWidget(QCheckBox("just_starting"))
-
-        g2 = control_panel.add_group("User Parameters", QFormLayout)
-        g2.content.addRow("robot", QLineEdit())
-        g2.content.addRow("world", QLineEdit())
-
-        g3 = control_panel.add_group("Display", QVBoxLayout)
-        g3content = g3.add_group("Geometries and Axes", QVBoxLayout)
-        g3content.content.addWidget(QCheckBox("display_links"))
-        g3content.content.addWidget(QCheckBox("display_links_axes"))
-        g3content.content.addWidget(QCheckBox("display_base_axes"))
-        g3content.content.addWidget(QCheckBox("display_joints"))
-        g3content.content.addWidget(QCheckBox("display_joints_axes"))
-        g3content.content.addWidget(QCheckBox("display_joints_angles"))
-        g3content.content.addWidget(QCheckBox("display_wireframe"))
-        g3content.content.addWidget(QCheckBox("display_collision"))
-
-        # display
+        # display settings (link and joints)
         display_settings = control_panel.add_group("Display Settings", QVBoxLayout)
-        colors_settings = display_settings.add_group("Colors", QVBoxLayout)
-        link_colors_settings = colors_settings.add_group("Links", QVBoxLayout)
-        joint_colors_settings = colors_settings.add_group("Joints", QVBoxLayout)
+        link_settings = display_settings.add_group("Links", QVBoxLayout)
+        joint_settings = display_settings.add_group("Joints", QVBoxLayout)
+
+        # add toggle for link and joint display
+        link_settings.content.addWidget(QCheckBox("Show Links"))
+        joint_settings.content.addWidget(QCheckBox("Show Joints"))
+        joint_settings.content.addWidget(QCheckBox("Show Joint Axes"))
 
         # add slider for link and joint rgbs
         for i, color in enumerate(("r", "g", "b")):
-
-            def set_link_color(val, i=i):
-                self.settings.robot_color[i] = val
-
-            link_slider = SliderWidget(
-                color, set_link_color, self.settings.robot_color[i]
+            link_color_slider = SliderWidget(
+                color,
+                lambda val, i=i: self.on_update_link_color(val, i),
+                self.settings.robot_color[i],
             )
-            link_colors_settings.content.addWidget(link_slider)
+            link_settings.content.addWidget(link_color_slider)
 
-            def set_joint_color(val, i=i):
-                self.settings.joint_color[i] = val
-
-            joint_slider = SliderWidget(
-                color, set_joint_color, self.settings.joint_color[i]
+            joint_color_slider = SliderWidget(
+                color,
+                lambda val, i=i: self.on_update_joint_color(val, i),
+                self.settings.joint_color[i],
             )
-            joint_colors_settings.content.addWidget(joint_slider)
+            joint_settings.content.addWidget(joint_color_slider)
 
     def update(self) -> None:
         """Does all the visual updates of the window."""
@@ -228,11 +223,6 @@ class KinevalWindow(QMainWindow):
             # update joint and axis transformation
             joint.geom.user_matrix = joint.transform
             joint.axis_geom.user_matrix = joint.transform
-            # update joint color
-            joint.geom.prop.SetColor(*self.settings.joint_color)
-
-        # update color of selected joint
-        self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
 
         # update plotter widget
         self.plotter.update()
@@ -256,11 +246,17 @@ class KinevalWindow(QMainWindow):
 
         # joint traversal
         elif key == Qt.Key_J:  # traverse up joint
-            traverse_up_joint(self.robot)
+            traverse_up_joint(
+                self.robot, self.settings.joint_color, self.settings.selection_color
+            )
         elif key == Qt.Key_K:  # traverse down joint
-            traverse_down_joint(self.robot)
+            traverse_down_joint(
+                self.robot, self.settings.joint_color, self.settings.selection_color
+            )
         elif key == Qt.Key_L:  # traverse adjacent joint
-            traverse_adjacent_joint(self.robot)
+            traverse_adjacent_joint(
+                self.robot, self.settings.joint_color, self.settings.selection_color
+            )
 
     def on_key_release(self, event: QKeyEvent) -> None:
         """Removes key from `pressed_key` if it has been released.
@@ -288,3 +284,34 @@ class KinevalWindow(QMainWindow):
             self.plotter.camera.SetPosition(self.previous_camera_pos)
         else:
             self.previous_camera_pos = self.plotter.camera.position
+
+    def on_update_link_color(self, value: float, index: int) -> None:
+        """Updates `self.settings.robot_color` at index `index`,
+        and the updates the link geometry colors.
+
+        Args:
+            value (float): Value of slider to set to.
+            index (int): Color index to modify. 0=r, 1=g, 2=b.
+        """
+        self.settings.robot_color[index] = value
+
+        # add update robot link geom colors
+        for link in self.robot.links:
+            link.geom.prop.SetColor(*self.settings.robot_color)
+
+    def on_update_joint_color(self, value: float, index: int) -> None:
+        """Updates `self.settings.joint_color` at index `index`,
+        and the updates the joint geometry colors.
+
+        Args:
+            value (float): Value of slider to set to.
+            index (int): Color index to modify. 0=r, 1=g, 2=b.
+        """
+        self.settings.joint_color[index] = value
+
+        # add update robot joint geom colors
+        for joint in self.robot.joints:
+            joint.geom.prop.SetColor(*self.settings.joint_color)
+
+        # highlight selected joint
+        self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)

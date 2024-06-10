@@ -1,4 +1,4 @@
-from kineval import Robot, Vec2
+from kineval import Robot, Vec3, Vec2
 from scipy.spatial.transform import Rotation as R
 import numpy as np
 from pyvista.plotting.camera import Camera
@@ -51,35 +51,45 @@ def turn_robot(robot: Robot, direction: float, speed: float):
     robot.facing = mstack @ np.array([1, 0, 0], float)
 
 
-def traverse_up_joint(robot: Robot):
+def traverse_up_joint(robot: Robot, color: Vec3, selected_color: Vec3):
     """Selects the next joint down the kinematic
     hierarchy.
 
     Args:
         robot (Robot): The robot to traverse.
+        color (Vec3): Color of normal joint.
+        selected_color (Vec3): Color of selected joint.
     """
     # select first child joint of child link
     if robot.selected.child.children:
+        robot.selected.geom.prop.SetColor(*color)  # revert color
         robot.selected = robot.selected.child.children[0]
+        robot.selected.geom.prop.SetColor(*selected_color)  # update color
 
 
-def traverse_down_joint(robot: Robot):
+def traverse_down_joint(robot: Robot, color: Vec3, selected_color: Vec3):
     """Selects the previous joint down the kinematic
     hierarchy.
 
     Args:
         robot (Robot): The robot to traverse.
+        color (Vec3): Color of normal joint.
+        selected_color (Vec3): Color of selected joint.
     """
     # select parent joint of parent link
     if robot.selected.parent.parent:
+        robot.selected.geom.prop.SetColor(*color)  # revert color
         robot.selected = robot.selected.parent.parent
+        robot.selected.geom.prop.SetColor(*selected_color)  # update color
 
 
-def traverse_adjacent_joint(robot: Robot):
+def traverse_adjacent_joint(robot: Robot, color: Vec3, selected_color: Vec3):
     """Selects the adjacent joint of the same link.
 
     Args:
         robot (Robot): The robot to traverse.
+        color (Vec3): Color of normal joint.
+        selected_color (Vec3): Color of selected joint.
     """
     # ignore if link only has one children
     child_joints = robot.selected.parent.children
@@ -92,7 +102,9 @@ def traverse_adjacent_joint(robot: Robot):
         if joint == robot.selected:
             break
     # go to next joint (or wrap to first joint)
+    robot.selected.geom.prop.SetColor(*color)  # revert color
     robot.selected = child_joints[(i + 1) % n_children]
+    robot.selected.geom.prop.SetColor(*selected_color)  # update color
 
 
 def apply_control(robot: Robot, direction: float, speed: float):
