@@ -4,13 +4,24 @@ from kineval import (
     traverse_up_joint,
     traverse_down_joint,
     traverse_adjacent_joint,
+    CollapsibleWidget,
     Vec3,
 )
 from robots import Cylinder, Line
 from pyvistaqt import QtInteractor
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import (
+    QMainWindow,
+    QVBoxLayout,
+    QWidget,
+    QDockWidget,
+    QFormLayout,
+    QCheckBox,
+    QLineEdit,
+    QLabel,
+    QPushButton,
+)
 from dataclasses import dataclass, field
 import numpy as np
 
@@ -62,25 +73,29 @@ class KinevalWindow(QMainWindow):
         self.pressed_keys = set()  # currently pressed keys
         self.previous_camera_pos: Vec3 = [0, 0, 0]  # last valid camera position
         self.plotter: QtInteractor = None  # main widget for drawing robots & world
+        self.gui: QDockWidget = None  # widget for displaying gui control panel
 
         # initialize window
         super().__init__(parent=None)
         self.setWindowTitle("Kineval")
+        self.resize(960, 540)
 
         # initialize widgets
         self.__create_plotter_widget()
         self.__add_robot_to_plotter()
         self.__add_world_to_plotter()
+        self.__create_gui_widget()
 
     def __create_plotter_widget(self) -> None:
         """Initializes the main plotter widget for displaying the
         world and the robot."""
         # create central widget to show plotter
-        central_widget = QWidget(self)
+        central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
         # specify layout
         layout = QVBoxLayout(central_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         # attach pyvista qt plotter
         self.plotter = QtInteractor(central_widget)
@@ -88,6 +103,7 @@ class KinevalWindow(QMainWindow):
 
         # specify plotter settings
         self.plotter.set_background(self.settings.bg_color)
+        self.plotter.add_axes()
 
         # attach different callbacks
         self.plotter.keyPressEvent = self.on_key_press
@@ -123,6 +139,38 @@ class KinevalWindow(QMainWindow):
         """Creates and adds the terrain and obstacle geometries
         to the plotter widget."""
         pass
+
+    def __create_gui_widget(self):
+        """Initializes a dock widget for displaying an
+        interactive GUI for controlling the program.
+        """
+        # create dock widget to show gui
+        self.gui = QDockWidget("Control Pannel", self)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.gui)
+
+        # create top level group for all settings
+        control_panel = CollapsibleWidget("Kineval", QVBoxLayout)
+        self.gui.setWidget(control_panel)
+
+        # example below for sub-groups
+        g1 = control_panel.add_group("Test", QVBoxLayout)
+        g1content = QCheckBox("just_starting")
+        g1.content.addWidget(g1content)
+
+        g2 = control_panel.add_group("User Parameters", QFormLayout)
+        g2.content.addRow("robot", QLineEdit())
+        g2.content.addRow("world", QLineEdit())
+
+        g3 = control_panel.add_group("Display", QVBoxLayout)
+        g3content = g3.add_group("Geometries and Axes", QVBoxLayout)
+        g3content.content.addWidget(QCheckBox("display_links"))
+        g3content.content.addWidget(QCheckBox("display_links_axes"))
+        g3content.content.addWidget(QCheckBox("display_base_axes"))
+        g3content.content.addWidget(QCheckBox("display_joints"))
+        g3content.content.addWidget(QCheckBox("display_joints_axes"))
+        g3content.content.addWidget(QCheckBox("display_joints_angles"))
+        g3content.content.addWidget(QCheckBox("display_wireframe"))
+        g3content.content.addWidget(QCheckBox("display_collision"))
 
     def update(self):
         """Does all the visual updates of the window."""
