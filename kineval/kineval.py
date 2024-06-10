@@ -9,24 +9,30 @@ from kineval import (
 )
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QApplication
-from dataclasses import dataclass, field
 
 # student functions
 from kineval.init_robot import init_robot
 from kineval.forward_kinematics import traverse_robot_FK
 
 
-@dataclass
 class KinevalSettings:
     """Struct for storing full settings for kineval."""
 
-    window_settings: KinevalWindowSettings = field(
-        default_factory=KinevalWindowSettings
-    )  # window settings
-    tick_rate: float = 60  # target updates per second
-    movement_speed: float = 5  # robot movement speed in m/s
-    turn_speed: float = 3  # robot turn speed in rad/s
-    control_speed: float = 1  # robot control speed in rad or m/s
+    def __init__(
+        self,
+        window_settings: KinevalWindowSettings = None,
+        tick_rate: float = 60,
+        movement_speed: float = 5,
+        turn_speed: float = 3,
+        control_speed: float = 1,
+    ) -> None:
+        self.window_settings: KinevalWindowSettings = (
+            KinevalWindowSettings() if window_settings is None else window_settings
+        )  # # window settings
+        self.tick_rate: float = tick_rate  # target updates per second
+        self.movement_speed: float = movement_speed  # robot movement speed in m/s
+        self.turn_speed: float = turn_speed  # robot turn speed in rad/s
+        self.control_speed: float = control_speed  # robot control speed in rad or m/s
 
 
 class Kineval:

@@ -5,6 +5,7 @@ from kineval import (
     traverse_down_joint,
     traverse_adjacent_joint,
     CollapsibleWidget,
+    SliderWidget,
     Vec3,
 )
 from robots import Cylinder, Line
@@ -14,37 +15,46 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QMainWindow,
     QVBoxLayout,
+    QFormLayout,
     QWidget,
     QDockWidget,
-    QFormLayout,
+    QLabel,
     QCheckBox,
     QLineEdit,
-    QLabel,
-    QPushButton,
 )
-from dataclasses import dataclass, field
 import numpy as np
 
 
-@dataclass
 class KinevalWindowSettings:
     """Struct for storing window settings."""
 
-    bg_color: Vec3 = field(
-        default_factory=lambda: np.array([0.533, 0.533, 0.533], float)
-    )  # color of background (default gray)
-    robot_color: Vec3 = field(
-        default_factory=lambda: np.array([0.0, 0.14, 0.3], float)
-    )  # color of robot (default dark blue)
-    joint_color: Vec3 = field(
-        default_factory=lambda: np.array([1.0, 0.79, 0.0], float)
-    )  # color of joints (default yellow)
-    selection_color: Vec3 = field(
-        default_factory=lambda: np.array([1.0, 0.0, 0.0], float)
-    )  # color of selected joints (default red)
-    robot_opacity: float = 0.6  # opacity of robot
-    joint_opacity: float = 1.0  # opacity of joints
-    joint_size: float = 0.2  # radius of joint
+    def __init__(
+        self,
+        bg_color: Vec3 = None,
+        robot_color: Vec3 = None,
+        joint_color: Vec3 = None,
+        selection_color: Vec3 = None,
+        robot_opacity: float = 0.6,
+        joint_opacity: float = 1.0,
+        joint_size: float = 0.2,
+    ) -> None:
+        self.bg_color: Vec3 = (
+            np.array([0.533, 0.533, 0.533], float) if bg_color is None else bg_color
+        )  # color of background (default gray)
+        self.robot_color: Vec3 = (
+            np.array([0.0, 0.14, 0.3], float) if robot_color is None else robot_color
+        )  # color of links (default dark blue)
+        self.joint_color: Vec3 = (
+            np.array([1.0, 0.8, 0.0], float) if joint_color is None else joint_color
+        )  # color of joints (default yellow)
+        self.selection_color: Vec3 = (
+            np.array([1.0, 0.0, 0.0], float)
+            if selection_color is None
+            else selection_color
+        )  # color of selected joints (default red)
+        self.robot_opacity: float = robot_opacity  # opacity of links
+        self.joint_opacity: float = joint_opacity  # opacity of joints
+        self.joint_size: float = joint_size  # radius of joint
 
 
 class KinevalWindow(QMainWindow):
@@ -140,12 +150,16 @@ class KinevalWindow(QMainWindow):
         to the plotter widget."""
         pass
 
-    def __create_gui_widget(self):
+    def __create_gui_widget(self) -> None:
         """Initializes a dock widget for displaying an
         interactive GUI for controlling the program.
         """
         # create dock widget to show gui
-        self.gui = QDockWidget("Control Pannel", self)
+        self.gui = QDockWidget("Control Panel", self)
+        self.gui.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)
+        self.gui.setFeatures(
+            QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
+        )
         self.addDockWidget(Qt.RightDockWidgetArea, self.gui)
 
         # create top level group for all settings
@@ -154,8 +168,7 @@ class KinevalWindow(QMainWindow):
 
         # example below for sub-groups
         g1 = control_panel.add_group("Test", QVBoxLayout)
-        g1content = QCheckBox("just_starting")
-        g1.content.addWidget(g1content)
+        g1.content.addWidget(QCheckBox("just_starting"))
 
         g2 = control_panel.add_group("User Parameters", QFormLayout)
         g2.content.addRow("robot", QLineEdit())
@@ -172,7 +185,32 @@ class KinevalWindow(QMainWindow):
         g3content.content.addWidget(QCheckBox("display_wireframe"))
         g3content.content.addWidget(QCheckBox("display_collision"))
 
-    def update(self):
+        # display
+        display_settings = control_panel.add_group("Display Settings", QVBoxLayout)
+        colors_settings = display_settings.add_group("Colors", QVBoxLayout)
+        link_colors_settings = colors_settings.add_group("Links", QVBoxLayout)
+        joint_colors_settings = colors_settings.add_group("Joints", QVBoxLayout)
+
+        # add slider for link and joint rgbs
+        for i, color in enumerate(("r", "g", "b")):
+
+            def set_link_color(val, i=i):
+                self.settings.robot_color[i] = val
+
+            link_slider = SliderWidget(
+                color, set_link_color, self.settings.robot_color[i]
+            )
+            link_colors_settings.content.addWidget(link_slider)
+
+            def set_joint_color(val, i=i):
+                self.settings.joint_color[i] = val
+
+            joint_slider = SliderWidget(
+                color, set_joint_color, self.settings.joint_color[i]
+            )
+            joint_colors_settings.content.addWidget(joint_slider)
+
+    def update(self) -> None:
         """Does all the visual updates of the window."""
         # update link visuals
         for link in self.robot.links:
@@ -182,13 +220,15 @@ class KinevalWindow(QMainWindow):
                 if link == self.robot.base
                 else link.parent.transform
             )
+            # update link color
+            link.geom.prop.SetColor(*self.settings.robot_color)
 
         # update joint visuals
         for joint in self.robot.joints:
             # update joint and axis transformation
             joint.geom.user_matrix = joint.transform
             joint.axis_geom.user_matrix = joint.transform
-            # reset color
+            # update joint color
             joint.geom.prop.SetColor(*self.settings.joint_color)
 
         # update color of selected joint
@@ -210,7 +250,11 @@ class KinevalWindow(QMainWindow):
         if key in self.detect_keys and key not in self.pressed_keys:
             self.pressed_keys.add(key)
 
-        # detect only first key down
+        # detect single key presses
+        elif key == Qt.Key_H:  # toggle menu
+            self.gui.toggleViewAction().trigger()
+
+        # joint traversal
         elif key == Qt.Key_J:  # traverse up joint
             traverse_up_joint(self.robot)
         elif key == Qt.Key_K:  # traverse down joint

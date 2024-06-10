@@ -9,6 +9,6 @@ from .controlls import (
     traverse_adjacent_joint,
     apply_control,
 )
-from .gui import CollapsibleWidget
+from .gui import CollapsibleWidget, SliderWidget
 from .renderer import KinevalWindow, KinevalWindowSettings
 from .kineval import Kineval, KinevalSettings
