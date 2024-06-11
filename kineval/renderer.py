@@ -162,7 +162,7 @@ class KinevalWindow(QMainWindow):
         interactive GUI for controlling the program.
         """
         # create dock widget to show gui
-        self.gui = QDockWidget("Control Panel", self)
+        self.gui = QDockWidget("Control Panel")
         self.gui.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)
         self.gui.setFeatures(
             QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
@@ -176,34 +176,40 @@ class KinevalWindow(QMainWindow):
         self.gui.setWidget(scroll)
 
         # create top level group for all settings
-        control_panel = CollapsibleWidget("Settings", QVBoxLayout)
+        control_panel = CollapsibleWidget("Settings", expanded=True)
         scroll.setWidget(control_panel)
 
         # display settings (link and joints)
-        display_settings = control_panel.add_group("Display Settings", QVBoxLayout)
-        link_settings = display_settings.add_group("Links", QVBoxLayout)
-        joint_settings = display_settings.add_group("Joints", QVBoxLayout)
+        display_settings = control_panel.add_group("Display Settings")
+        link_settings = display_settings.add_group("Links")
+        joint_settings = display_settings.add_group("Joints")
 
         # add toggle for link and joint display
-        link_settings.content.addWidget(QCheckBox("Show Links"))
-        joint_settings.content.addWidget(QCheckBox("Show Joints"))
-        joint_settings.content.addWidget(QCheckBox("Show Joint Axes"))
+        link_toggle = QCheckBox("Show Links", checked=True)
+        link_toggle.toggled.connect(lambda: self.update_link_visibility(link_toggle))
+        link_settings.addWidget(link_toggle)
+        joint_toggle = QCheckBox("Show Joints", checked=True)
+        joint_toggle.toggled.connect(lambda: self.update_joint_visibility(joint_toggle))
+        joint_settings.addWidget(joint_toggle)
+        axis_toggle = QCheckBox("Show Joint Axes", checked=True)
+        axis_toggle.toggled.connect(lambda: self.update_axis_visibility(axis_toggle))
+        joint_settings.addWidget(axis_toggle)
 
         # add slider for link and joint rgbs
         for i, color in enumerate(("r", "g", "b")):
             link_color_slider = SliderWidget(
                 color,
-                lambda val, i=i: self.on_update_link_color(val, i),
+                lambda val, i=i: self.update_link_color(val, i),
                 self.settings.robot_color[i],
             )
-            link_settings.content.addWidget(link_color_slider)
+            link_settings.addWidget(link_color_slider)
 
             joint_color_slider = SliderWidget(
                 color,
-                lambda val, i=i: self.on_update_joint_color(val, i),
+                lambda val, i=i: self.update_joint_color(val, i),
                 self.settings.joint_color[i],
             )
-            joint_settings.content.addWidget(joint_color_slider)
+            joint_settings.addWidget(joint_color_slider)
 
     def update(self) -> None:
         """Does all the visual updates of the window."""
@@ -285,7 +291,7 @@ class KinevalWindow(QMainWindow):
         else:
             self.previous_camera_pos = self.plotter.camera.position
 
-    def on_update_link_color(self, value: float, index: int) -> None:
+    def update_link_color(self, value: float, index: int) -> None:
         """Updates `self.settings.robot_color` at index `index`,
         and the updates the link geometry colors.
 
@@ -299,7 +305,7 @@ class KinevalWindow(QMainWindow):
         for link in self.robot.links:
             link.geom.prop.SetColor(*self.settings.robot_color)
 
-    def on_update_joint_color(self, value: float, index: int) -> None:
+    def update_joint_color(self, value: float, index: int) -> None:
         """Updates `self.settings.joint_color` at index `index`,
         and the updates the joint geometry colors.
 
@@ -315,3 +321,30 @@ class KinevalWindow(QMainWindow):
 
         # highlight selected joint
         self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
+
+    def update_link_visibility(self, button: QCheckBox) -> None:
+        """Sets link visibility.
+
+        Args:
+            button (QCheckButton): Button used for toggle.
+        """
+        for link in self.robot.links:
+            link.geom.SetVisibility(button.isChecked())
+
+    def update_joint_visibility(self, button: QCheckBox) -> None:
+        """Sets joint visibility.
+
+        Args:
+            button (QCheckButton): Button used for toggle.
+        """
+        for joint in self.robot.joints:
+            joint.geom.SetVisibility(button.isChecked())
+
+    def update_axis_visibility(self, button: QCheckBox) -> None:
+        """Sets joint axis visibility.
+
+        Args:
+            button (QCheckButton): Button used for toggle.
+        """
+        for joint in self.robot.joints:
+            joint.axis_geom.SetVisibility(button.isChecked())

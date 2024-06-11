@@ -18,8 +18,8 @@ from typing import Type, Callable
 
 class SliderWidget(QWidget):
     """A widget with a label, slider, and value.
-    `val` stores the value of the slider variable, and `update_callback`
-    is called with `val` every time the variables updates."""
+    `val` stores the value of the slider variable, and `val` is passed
+    into `update_callback` every time the variables updates."""
 
     def __init__(
         self,
@@ -28,7 +28,15 @@ class SliderWidget(QWidget):
         default: float = 0,
         min_val: float = 0,
         max_val: float = 1,
-    ):
+    ) -> None:
+        """
+        Args:
+            label (str): The label for the slider.
+            update_callback (Callable): Function to call on slider variable update.
+            default (float, optional): Default value of slider variable. Defaults to 0.
+            min_val (float, optional): Minimum value of slider variable. Defaults to 0.
+            max_val (float, optional): Maximum value of slider variable. Defaults to 1.
+        """
         # class attributes
         self.label: QLabel = None  # label widget
         self.slider: QSlider = None  # slider widget
@@ -54,11 +62,11 @@ class SliderWidget(QWidget):
         self.value_display = QLineEdit()
         self.value_display.setReadOnly(False)
         self.value_display.setFixedWidth(50)
-        self.update_value_display(slider_val)
+        self.on_update_value(slider_val)
 
         # attach callback for when slider and value is edited
-        self.slider.valueChanged.connect(self.update_value_display)
-        self.value_display.returnPressed.connect(self.update_slider)
+        self.slider.valueChanged.connect(self.on_update_value)
+        self.value_display.returnPressed.connect(self.on_update_slider)
 
         # create the layout
         layout = QHBoxLayout()
@@ -67,7 +75,7 @@ class SliderWidget(QWidget):
         layout.addWidget(self.value_display)
         self.setLayout(layout)
 
-    def update_value_display(self, slider_val: float):
+    def on_update_value(self, slider_val: float):
         """Updates the value display if the slider is dragged.
 
         Args:
@@ -77,7 +85,7 @@ class SliderWidget(QWidget):
         self.value_display.setText(f"{self.val:.2f}")
         self.update_callback(self.val)
 
-    def update_slider(self):
+    def on_update_slider(self):
         """Updates the slider when a value is entered.
         Only updates if the value is a valid number within
         the range specified during construction."""
@@ -103,11 +111,16 @@ class CollapsibleWidget(QGroupBox):
     formatting and adding sub-widgets through the `content`
     attribute."""
 
-    def __init__(self, title: str, layout_class: Type[QLayout]) -> None:
+    def __init__(self, label: str, expanded: bool = False) -> None:
+        """
+        Args:
+            label (str): The name of the group.
+            expanded (bool, optional): Whether the widget starts expanded or not. Defaults to False.
+        """
         # class attributes
         self.toggle_button: QToolButton = None  # title of widget (click to toggle)
         self.toggle_frame: QFrame = None  # frame for the content
-        self.content: QLayout = layout_class()  # the layout of the content
+        self.content: QLayout = QVBoxLayout()  # the layout of the content
 
         # initialize widget
         super().__init__()
@@ -115,11 +128,11 @@ class CollapsibleWidget(QGroupBox):
         self.setFlat(True)
 
         # create a toggle button
-        self.toggle_button = QToolButton(text=title, checkable=True)
+        self.toggle_button = QToolButton(text=label, checkable=True, checked=expanded)
         self.toggle_button.setStyleSheet("QToolButton { border: none; }")
         self.toggle_button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.toggle_button.setArrowType(Qt.DownArrow)
-        self.toggle_button.clicked.connect(self.on_toggled)
+        self.toggle_button.clicked.connect(self.on_toggle)
 
         # create a frame to hold the contents
         self.toggle_frame = QFrame()
@@ -140,7 +153,18 @@ class CollapsibleWidget(QGroupBox):
             QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
         )
 
-    def on_toggled(self, checked: bool):
+        # set to default state
+        self.on_toggle(expanded)
+
+    def addWidget(self, widget: QWidget) -> None:
+        """Adds a widget to the content.
+
+        Args:
+            widget (QWidget): Widget to add.
+        """
+        self.content.addWidget(widget)
+
+    def on_toggle(self, checked: bool) -> None:
         """Updates the arrow to either facing down or right
         depending on the state of the collapsible widget.
 
@@ -150,17 +174,16 @@ class CollapsibleWidget(QGroupBox):
         self.toggle_button.setArrowType(Qt.DownArrow if checked else Qt.RightArrow)
         self.toggle_frame.setVisible(checked)
 
-    def add_group(self, title: str, layout_class: Type[QLayout]) -> "CollapsibleWidget":
+    def add_group(self, label: str) -> "CollapsibleWidget":
         """Creates a new CollapsibleWidget as a child of the
         current widget.
 
         Args:
-            title (str): Title of child CollapsibleWidget.
-            layout_class (Type[QLayout]): Layout class of child CollapsibleWidget.
+            label (str): Group name of child CollapsibleWidget.
 
         Returns:
             CollapsibleWidget: The child CollapsibleWidget.
         """
-        group = CollapsibleWidget(title, layout_class)
+        group = CollapsibleWidget(label)
         self.content.addWidget(group)
         return group
