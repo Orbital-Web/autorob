@@ -7,7 +7,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 
-def traverse_robot_FK(robot: Robot) -> None:
+def traverse_robot_FK(robot: Robot):
     """Traverses the robot kinematic chain and sets the
     `transform` property of the robot and the joints.
     May call `tranverse_link_FK` and `traverse_joint_FK`.
@@ -25,7 +25,7 @@ def traverse_robot_FK(robot: Robot) -> None:
     traverse_link_FK(mstack, robot.base)
 
 
-def traverse_link_FK(mstack: Mat4D, link: Link) -> None:
+def traverse_link_FK(mstack: Mat4D, link: Link):
     """Helper function to traverse a link during FK.
 
     Args:
@@ -39,7 +39,7 @@ def traverse_link_FK(mstack: Mat4D, link: Link) -> None:
         traverse_joint_FK(np.copy(mstack), joint)
 
 
-def traverse_joint_FK(mstack: Mat4D, joint: Joint) -> None:
+def traverse_joint_FK(mstack: Mat4D, joint: Joint):
     """Helper function to traverse a joint during FK.
 
     Args:

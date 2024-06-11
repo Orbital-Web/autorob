@@ -67,6 +67,13 @@ class KinevalWindow(QMainWindow):
         world: World,
         settings: KinevalWindowSettings,
     ) -> None:
+        """Initializes the plotter and gui for the window.
+
+        Args:
+            robot (Robot): Kineval robot.
+            world (World): Kineval world.
+            settings (KinevalWindowSettings): Settings for the window and visuals.
+        """
         # class attributes
         self.robot: Robot = robot  # robot
         self.world: World = world  # world container
@@ -97,7 +104,7 @@ class KinevalWindow(QMainWindow):
         self.__add_world_to_plotter()
         self.__create_gui_widget()
 
-    def __create_plotter_widget(self) -> None:
+    def __create_plotter_widget(self):
         """Initializes the main plotter widget for displaying the
         world and the robot."""
         # create central widget to show plotter
@@ -121,7 +128,7 @@ class KinevalWindow(QMainWindow):
         self.plotter.keyReleaseEvent = self.on_key_release
         self.plotter.iren.add_observer("InteractionEvent", self.on_camera_move)
 
-    def __add_robot_to_plotter(self) -> None:
+    def __add_robot_to_plotter(self):
         """Creates and adds the robot link and joint geometries
         to the plotter widget."""
         # add robot link geoms to window
@@ -153,15 +160,14 @@ class KinevalWindow(QMainWindow):
         center = self.robot.base.geom.GetCenter()
         self.plotter.camera.SetFocalPoint(center)
 
-    def __add_world_to_plotter(self) -> None:
+    def __add_world_to_plotter(self):
         """Creates and adds the terrain and obstacle geometries
         to the plotter widget."""
         pass
 
-    def __create_gui_widget(self) -> None:
+    def __create_gui_widget(self):
         """Initializes a dock widget for displaying an
-        interactive GUI for controlling the program.
-        """
+        interactive GUI for controlling the program."""
         # create dock widget to show gui
         self.gui = QDockWidget("Control Panel")
         self.gui.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)
@@ -225,7 +231,7 @@ class KinevalWindow(QMainWindow):
             QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
         )
 
-    def update(self) -> None:
+    def update(self):
         """Does all the visual updates of the window."""
         # update link visuals
         for link in self.robot.links:
@@ -247,7 +253,7 @@ class KinevalWindow(QMainWindow):
         # update plotter widget
         self.plotter.update()
 
-    def on_key_press(self, event: QKeyEvent) -> None:
+    def on_key_press(self, event: QKeyEvent):
         """Adds key to `pressed_key` if it has been pressed and is
         in `detect_keys`. Additionally runs commands that should
         only run once after a key press rather than while the key
@@ -278,7 +284,7 @@ class KinevalWindow(QMainWindow):
                 self.robot, self.settings.joint_color, self.settings.selection_color
             )
 
-    def on_key_release(self, event: QKeyEvent) -> None:
+    def on_key_release(self, event: QKeyEvent):
         """Removes key from `pressed_key` if it has been released.
 
         Args:
@@ -288,7 +294,7 @@ class KinevalWindow(QMainWindow):
         if key in self.pressed_keys:
             self.pressed_keys.remove(key)
 
-    def on_camera_move(self, caller, event) -> None:
+    def on_camera_move(self, caller, event):
         """Ensures the camera pivots around the robot base."""
         # update camera to pivot base
         center = self.robot.base.geom.GetCenter()
@@ -305,7 +311,7 @@ class KinevalWindow(QMainWindow):
         else:
             self.previous_camera_pos = self.plotter.camera.position
 
-    def update_link_color(self, value: float, index: int) -> None:
+    def update_link_color(self, value: float, index: int):
         """Updates `self.settings.robot_color` at index `index`,
         and the updates the link geometry colors.
 
@@ -319,7 +325,7 @@ class KinevalWindow(QMainWindow):
         for link in self.robot.links:
             link.geom.prop.SetColor(*self.settings.robot_color)
 
-    def update_joint_color(self, value: float, index: int) -> None:
+    def update_joint_color(self, value: float, index: int):
         """Updates `self.settings.joint_color` at index `index`,
         and the updates the joint geometry colors.
 
@@ -336,7 +342,7 @@ class KinevalWindow(QMainWindow):
         # highlight selected joint
         self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
 
-    def update_selection_color(self, value: float, index: int) -> None:
+    def update_selection_color(self, value: float, index: int):
         """Updates `self.settings.selection_color` at index `index`,
         and the updates the selected joint's geometry color.
 
@@ -347,7 +353,7 @@ class KinevalWindow(QMainWindow):
         self.settings.selection_color[index] = value
         self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
 
-    def update_link_visibility(self, button: QCheckBox) -> None:
+    def update_link_visibility(self, button: QCheckBox):
         """Sets link visibility.
 
         Args:
@@ -356,7 +362,7 @@ class KinevalWindow(QMainWindow):
         for link in self.robot.links:
             link.geom.SetVisibility(button.isChecked())
 
-    def update_joint_visibility(self, button: QCheckBox) -> None:
+    def update_joint_visibility(self, button: QCheckBox):
         """Sets joint visibility.
 
         Args:
@@ -365,7 +371,7 @@ class KinevalWindow(QMainWindow):
         for joint in self.robot.joints:
             joint.geom.SetVisibility(button.isChecked())
 
-    def update_axis_visibility(self, button: QCheckBox) -> None:
+    def update_axis_visibility(self, button: QCheckBox):
         """Sets joint axis visibility.
 
         Args:

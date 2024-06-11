@@ -11,13 +11,11 @@ from PyQt5.QtWidgets import (
     QLabel,
 )
 from PyQt5.QtCore import Qt
-from typing import Type, Callable
+from typing import Callable
 
 
 class SliderWidget(QWidget):
-    """A widget with a label, slider, and value.
-    `val` stores the value of the slider variable, and `val` is passed
-    into `update_callback` every time the variables updates."""
+    """A widget with a label, slider, and value."""
 
     def __init__(
         self,
@@ -26,8 +24,10 @@ class SliderWidget(QWidget):
         min_val: float = 0,
         max_val: float = 1,
         update_callback: Callable = None,
-    ) -> None:
-        """
+    ):
+        """If `update_callback` is specified, it will be called along with
+        `self.val` as the argument whenever the slider variable is updated.
+
         Args:
             label (str): The label for the slider.
             update_callback (Callable): Function to call on slider variable update.
@@ -73,8 +73,8 @@ class SliderWidget(QWidget):
         layout.addWidget(self.value_display)
         self.setLayout(layout)
 
-    def set_callback(self, update_callback: Callable) -> None:
-        """Sets the update callback to the input function.
+    def set_callback(self, update_callback: Callable):
+        """Sets the update callback function.
 
         Args:
             update_callback (Callable): Function to call on slider variable update.
@@ -115,12 +115,11 @@ class SliderWidget(QWidget):
 
 class CollapsibleWidget(QGroupBox):
     """A widget who's content can be collapsed or expanded
-    by clicking on its title. It's layout can be accessed for
-    formatting and adding sub-widgets through the `content`
-    attribute."""
+    by clicking on the label."""
 
-    def __init__(self, label: str, expanded: bool = False) -> None:
-        """
+    def __init__(self, label: str, expanded: bool = False):
+        """Initializes the collasible widget.
+
         Args:
             label (str): The name of the group.
             expanded (bool, optional): Whether the widget starts expanded or not. Defaults to False.
@@ -157,23 +156,13 @@ class CollapsibleWidget(QGroupBox):
         # set to default state
         self.on_toggle(expanded)
 
-    def addWidget(self, widget: QWidget) -> None:
+    def addWidget(self, widget: QWidget):
         """Adds a widget to the content.
 
         Args:
             widget (QWidget): Widget to add.
         """
         self.content.addWidget(widget)
-
-    def on_toggle(self, checked: bool) -> None:
-        """Updates the arrow to either facing down or right
-        depending on the state of the collapsible widget.
-
-        Args:
-            checked (bool): Whether the content is expanded or not.
-        """
-        self.toggle_button.setArrowType(Qt.DownArrow if checked else Qt.RightArrow)
-        self.toggle_frame.setVisible(checked)
 
     def add_group(self, label: str) -> "CollapsibleWidget":
         """Creates a new CollapsibleWidget as a child of the
@@ -188,3 +177,13 @@ class CollapsibleWidget(QGroupBox):
         group = CollapsibleWidget(label)
         self.content.addWidget(group)
         return group
+
+    def on_toggle(self, checked: bool):
+        """Updates the arrow to either facing down or right
+        depending on the state of the collapsible widget.
+
+        Args:
+            checked (bool): Whether the content is expanded or not.
+        """
+        self.toggle_button.setArrowType(Qt.DownArrow if checked else Qt.RightArrow)
+        self.toggle_frame.setVisible(checked)

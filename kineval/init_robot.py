@@ -1,7 +1,7 @@
 from kineval import Robot
 
 
-def init_robot(robot: Robot) -> None:
+def init_robot(robot: Robot):
     """Initializes the parent and children structures
     for each joint in the robot.
 

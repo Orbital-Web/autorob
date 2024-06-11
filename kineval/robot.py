@@ -7,7 +7,7 @@ from enum import Enum
 class Link:
     """A link class for the robot."""
 
-    def __init__(self, name: str, geom: pv.Actor) -> None:
+    def __init__(self, name: str, geom: pv.Actor):
         # structure
         self.name: str = name
         self.parent: Joint = None  # parent joint
@@ -34,7 +34,7 @@ class Joint:
         rpy: Vec3 = None,
         axis: Vec3 = None,
         limits: Vec2 | None = None,
-    ) -> None:
+    ):
         # structure
         self.name: str = name  # name of joint
         self.parent: Link = parent  # parent link
@@ -71,7 +71,7 @@ class Robot:
         joints: list[Joint],
         xyz: Vec3 = None,
         rpy: Vec3 = None,
-    ) -> None:
+    ):
         # structure
         self.name: str = name  # name of robot
         self.base: Link = base  # base link

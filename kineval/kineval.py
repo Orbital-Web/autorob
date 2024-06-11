@@ -36,14 +36,22 @@ class KinevalSettings:
 
 
 class Kineval:
-    """A class for managing the enitrety of the Kineval."""
+    """A class for managing the entirety of the program."""
 
     def __init__(
         self,
         robot: Robot,
         world: World,
         settings: KinevalSettings,
-    ) -> None:
+    ):
+        """Initializes the robot, world, window, and runs any other
+        necessary functions.
+
+        Args:
+            robot (Robot): The main robot.
+            world (World): The world description for the robot.
+            settings (KinevalSettings): All settings for the program.
+        """
         # class attributes
         self.robot: Robot = robot  # robot
         self.world: World = world  # world container
@@ -64,12 +72,12 @@ class Kineval:
         # run student initialization functions
         init_robot(self.robot)
 
-    def run(self) -> None:
+    def run(self):
         """Runs the entire program."""
         self.window.showMaximized()
         self.app.exec_()
 
-    def update(self) -> None:
+    def update(self):
         """Runs all the update functions and handles continuous key
         presses."""
         # control robot with WSAD
