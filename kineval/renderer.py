@@ -14,13 +14,14 @@ from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QMainWindow,
-    QVBoxLayout,
-    QFormLayout,
-    QScrollArea,
     QWidget,
     QDockWidget,
+    QVBoxLayout,
+    QScrollArea,
+    QLabel,
     QCheckBox,
-    QLineEdit,
+    QSpacerItem,
+    QSizePolicy,
 )
 import numpy as np
 
@@ -169,18 +170,17 @@ class KinevalWindow(QMainWindow):
         )
         self.addDockWidget(Qt.RightDockWidgetArea, self.gui)
 
-        # create scroll area
+        # create scroll area and gui layout
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setMinimumWidth(288)
         self.gui.setWidget(scroll)
-
-        # create top level group for all settings
-        control_panel = CollapsibleWidget("Settings", expanded=True)
-        scroll.setWidget(control_panel)
+        gui_layout = QVBoxLayout()
+        scroll.setLayout(gui_layout)
 
         # display settings (link and joints)
-        display_settings = control_panel.add_group("Display Settings")
+        display_settings = CollapsibleWidget("Display Settings")
+        gui_layout.addWidget(display_settings)
         link_settings = display_settings.add_group("Links")
         joint_settings = display_settings.add_group("Joints")
 
@@ -196,20 +196,34 @@ class KinevalWindow(QMainWindow):
         joint_settings.addWidget(axis_toggle)
 
         # add slider for link and joint rgbs
+        joint_settings.addWidget(QLabel("Joint"))
         for i, color in enumerate(("r", "g", "b")):
-            link_color_slider = SliderWidget(
-                color,
+            # link color
+            link_color_slider = SliderWidget(color, self.settings.robot_color[i])
+            link_color_slider.set_callback(
                 lambda val, i=i: self.update_link_color(val, i),
-                self.settings.robot_color[i],
             )
             link_settings.addWidget(link_color_slider)
-
-            joint_color_slider = SliderWidget(
-                color,
-                lambda val, i=i: self.update_joint_color(val, i),
-                self.settings.joint_color[i],
+            # joint color
+            joint_color_slider = SliderWidget(color, self.settings.joint_color[i])
+            joint_color_slider.set_callback(
+                lambda val, i=i: self.update_joint_color(val, i)
             )
             joint_settings.addWidget(joint_color_slider)
+
+        # add slider for selected joint rgbs
+        joint_settings.addWidget(QLabel("Selected Joint"))
+        for i, color in enumerate(("r", "g", "b")):
+            select_color_slider = SliderWidget(color, self.settings.selection_color[i])
+            select_color_slider.set_callback(
+                lambda val, i=i: self.update_selection_color(val, i)
+            )
+            joint_settings.addWidget(select_color_slider)
+
+        # add spacing to push contents to the top
+        gui_layout.addSpacerItem(
+            QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        )
 
     def update(self) -> None:
         """Does all the visual updates of the window."""
@@ -320,6 +334,17 @@ class KinevalWindow(QMainWindow):
             joint.geom.prop.SetColor(*self.settings.joint_color)
 
         # highlight selected joint
+        self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
+
+    def update_selection_color(self, value: float, index: int) -> None:
+        """Updates `self.settings.selection_color` at index `index`,
+        and the updates the selected joint's geometry color.
+
+        Args:
+            value (float): Value of slider to set to.
+            index (int): Color index to modify. 0=r, 1=g, 2=b.
+        """
+        self.settings.selection_color[index] = value
         self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
 
     def update_link_visibility(self, button: QCheckBox) -> None:

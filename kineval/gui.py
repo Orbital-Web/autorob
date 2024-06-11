@@ -6,8 +6,6 @@ from PyQt5.QtWidgets import (
     QFrame,
     QGroupBox,
     QToolButton,
-    QSpacerItem,
-    QSizePolicy,
     QSlider,
     QLineEdit,
     QLabel,
@@ -24,10 +22,10 @@ class SliderWidget(QWidget):
     def __init__(
         self,
         label: str,
-        update_callback: Callable,
         default: float = 0,
         min_val: float = 0,
         max_val: float = 1,
+        update_callback: Callable = None,
     ) -> None:
         """
         Args:
@@ -75,6 +73,14 @@ class SliderWidget(QWidget):
         layout.addWidget(self.value_display)
         self.setLayout(layout)
 
+    def set_callback(self, update_callback: Callable) -> None:
+        """Sets the update callback to the input function.
+
+        Args:
+            update_callback (Callable): Function to call on slider variable update.
+        """
+        self.update_callback = update_callback
+
     def on_update_value(self, slider_val: float):
         """Updates the value display if the slider is dragged.
 
@@ -83,7 +89,8 @@ class SliderWidget(QWidget):
         """
         self.val = self.val_range * (slider_val / 100) + self.min_val
         self.value_display.setText(f"{self.val:.2f}")
-        self.update_callback(self.val)
+        if self.update_callback:
+            self.update_callback(self.val)
 
     def on_update_slider(self):
         """Updates the slider when a value is entered.
@@ -97,7 +104,8 @@ class SliderWidget(QWidget):
                 slider_val = int(100 * (value - self.min_val) / self.val_range)
                 self.slider.setValue(slider_val)
                 self.val = value
-                self.update_callback(self.val)
+                if self.update_callback:
+                    self.update_callback(self.val)
             # do not set value if it's outside range
             else:
                 self.value_display.setText(f"{display_val:.2f}")
@@ -144,14 +152,7 @@ class CollapsibleWidget(QGroupBox):
         self.toggle_layout.addWidget(self.toggle_frame)
         self.toggle_layout.setContentsMargins(0, 0, 0, 0)
         self.toggle_layout.setSpacing(0)
-
-        # set the layout for the collapsible group
         self.setLayout(self.toggle_layout)
-
-        # add spacer to push content up when collapsed
-        self.toggle_layout.addSpacerItem(
-            QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        )
 
         # set to default state
         self.on_toggle(expanded)
