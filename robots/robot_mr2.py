@@ -33,41 +33,41 @@ joint_clavicle_right_yaw = Joint(
     name="clavicle_right_yaw",
     parent=link_base,
     child=link_clavicle_right,
-    xyz=np.array([-0.3, 0.0, 0.4], float),
-    rpy=np.array([np.pi / 2, 0.0, 0.0], float),
-    axis=np.array([0.0, 1.0, 0.0], float),
+    xyz=[-0.3, 0.0, 0.4],
+    rpy=[np.pi / 2, 0.0, 0.0],
+    axis=[0.0, 1.0, 0.0],
 )
 joint_shoulder_right_yaw = Joint(
     name="shoulder_right_yaw",
     parent=link_clavicle_right,
     child=link_shoulder_right,
-    xyz=np.array([0.0, 0.85, -0.15], float),
-    rpy=np.array([-np.pi / 2, 0.0, 0.0], float),
-    axis=np.array([0.0, 0.707, -0.707], float),
+    xyz=[0.0, 0.85, -0.15],
+    rpy=[-np.pi / 2, 0.0, 0.0],
+    axis=[0.0, 0.707, -0.707],
 )
 joint_upperarm_right_pitch = Joint(
     name="upperarm_right_pitch",
     parent=link_shoulder_right,
     child=link_upperarm_right,
-    xyz=np.array([0.0, 0.7, 0.0], float),
-    rpy=np.array([0.0, 0.0, 0.0], float),
-    axis=np.array([0.0, 0.0, -1.0], float),
+    xyz=[0.0, 0.7, 0.0],
+    rpy=[0.0, 0.0, 0.0],
+    axis=[0.0, 0.0, -1.0],
 )
 joint_forearm_right_yaw = Joint(
     name="forearm_right_yaw",
     parent=link_upperarm_right,
     child=link_forearm_right,
-    xyz=np.array([0.0, 0.7, 0.0], float),
-    rpy=np.array([0.0, 0.0, 0.0], float),
-    axis=np.array([1.0, 0.0, 0.0], float),
+    xyz=[0.0, 0.7, 0.0],
+    rpy=[0.0, 0.0, 0.0],
+    axis=[1.0, 0.0, 0.0],
 )
 joint_clavicle_left_roll = Joint(
     name="clavicle_left_roll",
     parent=link_base,
     child=link_clavicle_left,
-    xyz=np.array([0.3, 0.0, 0.4], float),
-    rpy=np.array([np.pi / 2, 0.0, 0.0], float),
-    axis=np.array([0.0, 1.0, 0.0], float),
+    xyz=[0.3, 0.0, 0.4],
+    rpy=[np.pi / 2, 0.0, 0.0],
+    axis=[0.0, 1.0, 0.0],
 )
 joints = [
     joint_clavicle_right_yaw,

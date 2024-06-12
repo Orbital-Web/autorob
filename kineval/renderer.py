@@ -300,16 +300,15 @@ class KinevalWindow(QMainWindow):
         center = self.robot.base.geom.GetCenter()
         self.plotter.camera.SetFocalPoint(center)
 
-        # Prevent camera from rolling
-        self.plotter.camera.SetViewUp([0, 0, 1])
+        # calculate camera components
+        view_dir = self.plotter.camera.GetDirectionOfProjection()
+        up_dir = self.plotter.camera.GetViewUp()
+        right_dir = np.cross(view_dir, up_dir)
 
-        # Ensure camera does not orbit past the center
-        view_vec = np.array(self.plotter.camera.position) - center
-        view_vec /= np.linalg.norm(view_vec)
-        if abs(view_vec[2]) > 0.995:
-            self.plotter.camera.SetPosition(self.previous_camera_pos)
-        else:
-            self.previous_camera_pos = self.plotter.camera.position
+        # disable camera roll
+        right_dir[2] = 0
+        right_dir /= np.linalg.norm(right_dir)
+        self.plotter.camera.SetViewUp(np.cross(right_dir, view_dir).tolist())
 
     def update_link_color(self, value: float, index: int):
         """Updates `self.settings.robot_color` at index `index`,

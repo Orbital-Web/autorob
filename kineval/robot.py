@@ -42,13 +42,13 @@ class Joint:
         self.type: Joint.JointType = type  # type of joint
         # static configurations
         self.xyz: Vec3 = (
-            np.zeros((3), float) if xyz is None else xyz
+            np.zeros((3), float) if xyz is None else np.array(xyz, float)
         )  # starting position
         self.rpy: Vec3 = (
-            np.zeros((3), float) if rpy is None else rpy
+            np.zeros((3), float) if rpy is None else np.array(rpy, float)
         )  # starting rotation
         self.axis: Vec3 = (
-            np.array([1, 0, 0], float) if axis is None else axis
+            np.array([1, 0, 0], float) if axis is None else np.array(axis, float)
         )  # joint axis
         self.limits: Vec2 | None = limits  # [min, max] of theta or None for no limits
         # dynamic configurations
@@ -79,8 +79,12 @@ class Robot:
         self.links: list[Link] = links  # links in the robot
         self.joints: list[Joint] = joints  # joints in the robot
         # dynamic configurations
-        self.xyz: Vec3 = np.zeros((3), float) if xyz is None else xyz  # base position
-        self.rpy: Vec3 = np.zeros((3), float) if rpy is None else rpy  # base rotation
+        self.xyz: Vec3 = (
+            np.zeros((3), float) if xyz is None else np.array(xyz, float)
+        )  # base position
+        self.rpy: Vec3 = (
+            np.zeros((3), float) if rpy is None else np.array(rpy, float)
+        )  # base rotation
         self.transform: Mat4D = np.identity(4, float)  # homogenous transform matrix
         self.facing: Vec3 = np.array([1, 0, 0], float)  # unit vector of front direction
         # visual
