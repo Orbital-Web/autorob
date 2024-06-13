@@ -1,7 +1,8 @@
 from .types import *
+from .geometries import Box, Cylinder, Line, Plane
 from .robot import Robot, Link, Joint
 from .world import World
-from .controlls import (
+from .controls import (
     move_robot,
     turn_robot,
     traverse_up_joint,

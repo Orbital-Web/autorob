@@ -1,19 +1,18 @@
-from kineval import Robot, Link, Joint
-from robots import Box
+from kineval import Robot, Link, Joint, Box
 import numpy as np
 
 # links
-link_base = Link(name="base", geom=Box(shape=[1.0, 2.3, 0.4], xyz=[0.0, 0.0, 0]))
+link_base = Link(name="base", geom=Box(shape=[1.0, 2.3, 0.4], origin=[0.0, 0.0, 0]))
 link_legs = []
 for i in range(8):
     link_i_upper = Link(
-        name=f"leg{i+1}_upper", geom=Box(shape=[0.3, 0.3, 0.3], xyz=[0.0, 0.15, 0.0])
+        name=f"leg{i+1}_upper", geom=Box(shape=[0.3, 0.3, 0.3], origin=[0.0, 0.15, 0.0])
     )
     link_i_middle = Link(
-        name=f"leg{i+1}_middle", geom=Box(shape=[0.3, 0.6, 0.3], xyz=[0.0, 0.3, 0.0])
+        name=f"leg{i+1}_middle", geom=Box(shape=[0.3, 0.6, 0.3], origin=[0.0, 0.3, 0.0])
     )
     link_i_lower = Link(
-        name=f"leg{i+1}_lower", geom=Box(shape=[0.3, 1.0, 0.3], xyz=[0.0, 0.5, 0.0])
+        name=f"leg{i+1}_lower", geom=Box(shape=[0.3, 1.0, 0.3], origin=[0.0, 0.5, 0.0])
     )
     link_legs.extend([link_i_upper, link_i_middle, link_i_lower])
 links = [link_base, *link_legs]

@@ -1,23 +1,22 @@
-from kineval import Robot, Link, Joint
-from robots import Box
+from kineval import Robot, Link, Joint, Box
 import numpy as np
 
 # links
-link_base = Link(name="base", geom=Box(shape=[1.0, 1.0, 0.4], xyz=[0.0, 0.0, 0.2]))
+link_base = Link(name="base", geom=Box(shape=[1.0, 1.0, 0.4], origin=[0.0, 0.0, 0.2]))
 link_clavicle_right = Link(
-    name="clavicle_right", geom=Box(shape=[0.3, 1.0, 0.3], xyz=[0.0, 0.5, 0.0])
+    name="clavicle_right", geom=Box(shape=[0.3, 1.0, 0.3], origin=[0.0, 0.5, 0.0])
 )
 link_clavicle_left = Link(
-    name="clavicle_left", geom=Box(shape=[0.3, 1.0, 0.3], xyz=[0.0, 0.5, 0.0])
+    name="clavicle_left", geom=Box(shape=[0.3, 1.0, 0.3], origin=[0.0, 0.5, 0.0])
 )
 link_shoulder_right = Link(
-    name="shoulder_right", geom=Box(shape=[0.3, 0.7, 0.3], xyz=[0.0, 0.35, 0.0])
+    name="shoulder_right", geom=Box(shape=[0.3, 0.7, 0.3], origin=[0.0, 0.35, 0.0])
 )
 link_upperarm_right = Link(
-    name="upperarm_right", geom=Box(shape=[0.3, 0.7, 0.3], xyz=[0.0, 0.35, 0.0])
+    name="upperarm_right", geom=Box(shape=[0.3, 0.7, 0.3], origin=[0.0, 0.35, 0.0])
 )
 link_forearm_right = Link(
-    name="forearm_right", geom=Box(shape=[0.3, 0.5, 0.3], xyz=[0.0, 0.25, 0.0])
+    name="forearm_right", geom=Box(shape=[0.3, 0.5, 0.3], origin=[0.0, 0.25, 0.0])
 )
 links = [
     link_base,

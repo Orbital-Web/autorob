@@ -1,6 +1,8 @@
 from kineval import (
     Robot,
     World,
+    Cylinder,
+    Line,
     traverse_up_joint,
     traverse_down_joint,
     traverse_adjacent_joint,
@@ -9,7 +11,6 @@ from kineval import (
     VariableDisplayWidget,
     Vec3,
 )
-from robots import Cylinder, Line
 from pyvistaqt import QtInteractor
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtCore import Qt
@@ -40,7 +41,7 @@ class KinevalWindowSettings:
         robot_opacity: float = 0.8,
         joint_opacity: float = 1.0,
         joint_size: float = 0.2,
-        terrain_opacity: float = 0.5,
+        terrain_opacity: float = 0.8,
     ) -> None:
         self.bg_color: Vec3 = (
             np.array([0.533, 0.533, 0.533], float)
@@ -63,10 +64,10 @@ class KinevalWindowSettings:
             else np.array(selection_color, float)
         )  # color of selected joints (default red)
         self.terrain_color: Vec3 = (
-            np.array([0.0, 0.14, 0.3], float)
+            np.array([0.4, 0.73, 0.4], float)
             if terrain_color is None
             else np.array(terrain_color, float)
-        )  # color of terrain (default blue)
+        )  # color of terrain (default light green)
         self.robot_opacity: float = robot_opacity  # opacity of links
         self.joint_opacity: float = joint_opacity  # opacity of joints
         self.joint_size: float = joint_size  # radius of joint
@@ -156,7 +157,10 @@ class KinevalWindow(QMainWindow):
         for joint in self.robot.joints:
             # joint geom
             joint.geom = Cylinder(
-                joint.axis, self.settings.joint_size, 0.5 * self.settings.joint_size
+                [0.0, 0.0, 0.0],
+                joint.axis,
+                self.settings.joint_size,
+                0.5 * self.settings.joint_size,
             )
             joint.geom.prop.SetColor(*self.settings.joint_color)
             joint.geom.prop.SetOpacity(self.settings.joint_opacity)
@@ -164,7 +168,7 @@ class KinevalWindow(QMainWindow):
 
             # joint axis geom
             joint.axis_geom = Line(
-                np.zeros((3), float), joint.axis, 2 * self.settings.joint_size, 2
+                [0.0, 0.0, 0.0], joint.axis, 2 * self.settings.joint_size, 2
             )
             self.plotter.add_actor(joint.axis_geom)
 
