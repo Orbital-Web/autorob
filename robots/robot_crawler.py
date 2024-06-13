@@ -34,7 +34,7 @@ for i in range(8):
         child=link_i_upper,
         xyz=[sign1_i * -0.3, sign2_i * sign3_i, 0.0],
         rpy=[0.0, 0.0, sign1_i * np.pi / 2],
-        axis=[0.0, 0.0, -1.0],
+        axis=[0.0, 0.0, 1.0],
     )
     leg_i_knee = Joint(
         name=f"leg{i+1}_knee",

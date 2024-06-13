@@ -6,6 +6,7 @@ from kineval import (
     traverse_adjacent_joint,
     CollapsibleWidget,
     SliderWidget,
+    VariableDisplayWidget,
     Vec3,
 )
 from robots import Cylinder, Line
@@ -35,7 +36,7 @@ class KinevalWindowSettings:
         robot_color: Vec3 = None,
         joint_color: Vec3 = None,
         selection_color: Vec3 = None,
-        robot_opacity: float = 0.6,
+        robot_opacity: float = 0.8,
         joint_opacity: float = 1.0,
         joint_size: float = 0.2,
     ) -> None:
@@ -184,6 +185,18 @@ class KinevalWindow(QMainWindow):
         gui_layout = QVBoxLayout()
         scroll.setLayout(gui_layout)
 
+        # display information (robot and world)
+        info_display = CollapsibleWidget("Info", expanded=True)
+        gui_layout.addWidget(info_display)
+        robot_display = info_display.add_group("Robot", expanded=True)
+        robot_display.addWidget(VariableDisplayWidget("Robot", self.robot.name))
+        robot_display.addWidget(VariableDisplayWidget("Base", self.robot.base.name))
+        robot_display.addWidget(
+            VariableDisplayWidget("Selection", self.robot.selected.name)
+        )
+        world_display = info_display.add_group("World", expanded=True)
+        world_display.addWidget(VariableDisplayWidget("World", self.world.name))
+
         # display settings (link and joints)
         display_settings = CollapsibleWidget("Display Settings")
         gui_layout.addWidget(display_settings)
@@ -197,7 +210,8 @@ class KinevalWindow(QMainWindow):
         joint_toggle = QCheckBox("Show Joints", checked=True)
         joint_toggle.toggled.connect(lambda: self.update_joint_visibility(joint_toggle))
         joint_settings.addWidget(joint_toggle)
-        axis_toggle = QCheckBox("Show Joint Axes", checked=True)
+        axis_toggle = QCheckBox("Show Joint Axes", checked=False)
+        self.update_axis_visibility(axis_toggle)
         axis_toggle.toggled.connect(lambda: self.update_axis_visibility(axis_toggle))
         joint_settings.addWidget(axis_toggle)
 

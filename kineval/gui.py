@@ -14,6 +14,39 @@ from PyQt5.QtCore import Qt
 from typing import Callable
 
 
+class VariableDisplayWidget(QWidget):
+    """A widget with a label and a variable display."""
+
+    def __init__(self, label: str, default: str) -> None:
+        # class attributes
+        self.label: QLabel = None  # label widget
+        self.display: QLineEdit = None  # display widget
+        self.val: str = default  # value of display varaible
+
+        # initialize the widget
+        super().__init__()
+
+        # create the label
+        self.label = QLabel(label)
+
+        # create the display
+        self.display = QLineEdit()
+        self.display.setReadOnly(True)
+        self.display.setFixedWidth(150)
+        self.display.setText(self.val)
+
+        # create the layout
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.label)
+        layout.addWidget(self.display)
+        self.setLayout(layout)
+
+    def update_value(self, value: str):
+        self.val = value
+        self.display.setText(self.val)
+
+
 class SliderWidget(QWidget):
     """A widget with a label, slider, and value."""
 
@@ -30,7 +63,7 @@ class SliderWidget(QWidget):
 
         Args:
             label (str): The label for the slider.
-            update_callback (Callable): Function to call on slider variable update.
+            update_callback (Callable): Function to call on slider variable update. Defaults to None.
             default (float, optional): Default value of slider variable. Defaults to 0.
             min_val (float, optional): Minimum value of slider variable. Defaults to 0.
             max_val (float, optional): Maximum value of slider variable. Defaults to 1.
@@ -41,7 +74,9 @@ class SliderWidget(QWidget):
         self.value_display: QLineEdit = None  # value display widget
         self.min_val: float = min_val  # minimum value the slider goes to
         self.val_range: float = max_val - min_val  # range of value for the slider
-        self.val: float = min(max(default, min_val), max_val)  # value of slider var
+        self.val: float = min(
+            max(default, min_val), max_val
+        )  # value of slider variable
         self.update_callback: Callable = update_callback  # function to call on update
 
         # initialize the widget
@@ -68,6 +103,7 @@ class SliderWidget(QWidget):
 
         # create the layout
         layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.label)
         layout.addWidget(self.slider)
         layout.addWidget(self.value_display)
@@ -164,7 +200,7 @@ class CollapsibleWidget(QGroupBox):
         """
         self.content.addWidget(widget)
 
-    def add_group(self, label: str) -> "CollapsibleWidget":
+    def add_group(self, label: str, **kwargs) -> "CollapsibleWidget":
         """Creates a new CollapsibleWidget as a child of the
         current widget.
 
@@ -174,7 +210,7 @@ class CollapsibleWidget(QGroupBox):
         Returns:
             CollapsibleWidget: The child CollapsibleWidget.
         """
-        group = CollapsibleWidget(label)
+        group = CollapsibleWidget(label, **kwargs)
         self.content.addWidget(group)
         return group
 

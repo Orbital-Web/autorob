@@ -8,6 +8,7 @@ class World:
     etc. that are in the world."""
 
     def __init__(self):
+        self.name: str = ""  # name of world
         self.obstacles: list = []  # list of obstacles
         self.terrain: pv.Actor = None  # terrain geometry
         self.bounds: Vec2 = np.array([10.0, 10.0], float)  # x and y bounds of the world
