@@ -1,4 +1,4 @@
-from kineval import Vec3
+from kineval import Vec3, Vec2
 from scipy.spatial.transform import Rotation as R
 import numpy as np
 import pyvista as pv
@@ -102,4 +102,28 @@ def Line(origin: Vec3, direction: Vec3, length: float, thickness: int = 1) -> pv
     # create geometry
     geom = pv.Actor(mapper=pv.DataSetMapper(mesh))
     geom.prop.SetLineWidth(thickness)
+    return geom
+
+
+def Plane(origin: Vec3, normal: Vec3, size: Vec2) -> pv.Actor:
+    """Creates a plane centered at `origin` with normal facing
+    towards `normal`.
+
+    Args:
+        origin (Vec3): Origin of plane.
+        normal (Vec3): Normal vector of line.
+        size (Vec2): x and y size of plane.
+
+    Returns:
+        pv.Actor: The generated plane geometry.
+    """
+    # ensure inputs are np arrays
+    origin = np.array(origin)
+    normal = np.array(normal)
+
+    # create mesh
+    mesh = pv.Plane(origin, normal, *size)
+
+    # create geometry
+    geom = pv.Actor(mapper=pv.DataSetMapper(mesh))
     return geom

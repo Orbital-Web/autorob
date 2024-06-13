@@ -36,27 +36,41 @@ class KinevalWindowSettings:
         robot_color: Vec3 = None,
         joint_color: Vec3 = None,
         selection_color: Vec3 = None,
+        terrain_color: Vec3 = None,
         robot_opacity: float = 0.8,
         joint_opacity: float = 1.0,
         joint_size: float = 0.2,
+        terrain_opacity: float = 0.5,
     ) -> None:
         self.bg_color: Vec3 = (
-            np.array([0.533, 0.533, 0.533], float) if bg_color is None else bg_color
+            np.array([0.533, 0.533, 0.533], float)
+            if bg_color is None
+            else np.array(bg_color, float)
         )  # color of background (default gray)
         self.robot_color: Vec3 = (
-            np.array([0.0, 0.14, 0.3], float) if robot_color is None else robot_color
+            np.array([0.0, 0.14, 0.3], float)
+            if robot_color is None
+            else np.array(robot_color, float)
         )  # color of links (default dark blue)
         self.joint_color: Vec3 = (
-            np.array([1.0, 0.8, 0.0], float) if joint_color is None else joint_color
+            np.array([1.0, 0.8, 0.0], float)
+            if joint_color is None
+            else np.array(joint_color, float)
         )  # color of joints (default yellow)
         self.selection_color: Vec3 = (
             np.array([1.0, 0.0, 0.0], float)
             if selection_color is None
-            else selection_color
+            else np.array(selection_color, float)
         )  # color of selected joints (default red)
+        self.terrain_color: Vec3 = (
+            np.array([0.0, 0.14, 0.3], float)
+            if terrain_color is None
+            else np.array(terrain_color, float)
+        )  # color of terrain (default blue)
         self.robot_opacity: float = robot_opacity  # opacity of links
         self.joint_opacity: float = joint_opacity  # opacity of joints
         self.joint_size: float = joint_size  # radius of joint
+        self.terrain_opacity: float = terrain_opacity  # opacity of terrain
 
 
 class KinevalWindow(QMainWindow):
@@ -164,7 +178,9 @@ class KinevalWindow(QMainWindow):
     def __add_world_to_plotter(self):
         """Creates and adds the terrain and obstacle geometries
         to the plotter widget."""
-        pass
+        self.plotter.add_actor(self.world.terrain)
+        self.world.terrain.prop.SetColor(*self.settings.terrain_color)
+        self.world.terrain.prop.SetOpacity(self.settings.terrain_opacity)
 
     def __create_gui_widget(self):
         """Initializes a dock widget for displaying an
@@ -185,25 +201,26 @@ class KinevalWindow(QMainWindow):
         gui_layout = QVBoxLayout()
         scroll.setLayout(gui_layout)
 
-        # display information (robot and world)
+        # show information (robot and world)
         info_display = CollapsibleWidget("Info", expanded=True)
         gui_layout.addWidget(info_display)
-        robot_display = info_display.add_group("Robot", expanded=True)
-        robot_display.addWidget(VariableDisplayWidget("Robot", self.robot.name))
-        robot_display.addWidget(VariableDisplayWidget("Base", self.robot.base.name))
-        robot_display.addWidget(
+        robot_info = info_display.add_group("Robot", expanded=True)
+        robot_info.addWidget(VariableDisplayWidget("Robot", self.robot.name))
+        robot_info.addWidget(VariableDisplayWidget("Base", self.robot.base.name))
+        robot_info.addWidget(
             VariableDisplayWidget("Selection", self.robot.selected.name)
         )
-        world_display = info_display.add_group("World", expanded=True)
-        world_display.addWidget(VariableDisplayWidget("World", self.world.name))
+        world_info = info_display.add_group("World", expanded=True)
+        world_info.addWidget(VariableDisplayWidget("World", self.world.name))
 
-        # display settings (link and joints)
+        # display settings (link, joints, world)
         display_settings = CollapsibleWidget("Display Settings")
         gui_layout.addWidget(display_settings)
         link_settings = display_settings.add_group("Links")
         joint_settings = display_settings.add_group("Joints")
+        world_settings = display_settings.add_group("World")
 
-        # add toggle for link and joint display
+        # add toggle for link, joint, and terrain display
         link_toggle = QCheckBox("Show Links", checked=True)
         link_toggle.toggled.connect(lambda: self.update_link_visibility(link_toggle))
         link_settings.addWidget(link_toggle)
@@ -214,8 +231,13 @@ class KinevalWindow(QMainWindow):
         self.update_axis_visibility(axis_toggle)
         axis_toggle.toggled.connect(lambda: self.update_axis_visibility(axis_toggle))
         joint_settings.addWidget(axis_toggle)
+        terrain_toggle = QCheckBox("Show Terrain", checked=True)
+        terrain_toggle.toggled.connect(
+            lambda: self.update_terrain_visibility(terrain_toggle)
+        )
+        world_settings.addWidget(terrain_toggle)
 
-        # add slider for link and joint rgbs
+        # add slider for link, joint, and terrain rgbs
         joint_settings.addWidget(QLabel("Joint"))
         for i, color in enumerate(("r", "g", "b")):
             # link color
@@ -230,6 +252,12 @@ class KinevalWindow(QMainWindow):
                 lambda val, i=i: self.update_joint_color(val, i)
             )
             joint_settings.addWidget(joint_color_slider)
+            # terrain color
+            terrain_color_slider = SliderWidget(color, self.settings.terrain_color[i])
+            terrain_color_slider.set_callback(
+                lambda val, i=i: self.update_terrain_color(val, i)
+            )
+            world_settings.addWidget(terrain_color_slider)
 
         # add slider for selected joint rgbs
         joint_settings.addWidget(QLabel("Selected Joint"))
@@ -240,7 +268,7 @@ class KinevalWindow(QMainWindow):
             )
             joint_settings.addWidget(select_color_slider)
 
-        # add spacing to push contents to the top
+        # add spacing to push collapsed content to the top
         gui_layout.addSpacerItem(
             QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
         )
@@ -366,6 +394,17 @@ class KinevalWindow(QMainWindow):
         self.settings.selection_color[index] = value
         self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
 
+    def update_terrain_color(self, value: float, index: int):
+        """Updates `self.settings.terrain_color` at index `index`,
+        and the updates the terrain geometry color.
+
+        Args:
+            value (float): Value of slider to set to.
+            index (int): Color index to modify. 0=r, 1=g, 2=b.
+        """
+        self.settings.terrain_color[index] = value
+        self.world.terrain.prop.SetColor(*self.settings.terrain_color)
+
     def update_link_visibility(self, button: QCheckBox):
         """Sets link visibility.
 
@@ -392,3 +431,11 @@ class KinevalWindow(QMainWindow):
         """
         for joint in self.robot.joints:
             joint.axis_geom.SetVisibility(button.isChecked())
+
+    def update_terrain_visibility(self, button: QCheckBox):
+        """Sets world terrain visibility.
+
+        Args:
+            button (QCheckBox): Button used for toggle.
+        """
+        self.world.terrain.SetVisibility(button.isChecked())
