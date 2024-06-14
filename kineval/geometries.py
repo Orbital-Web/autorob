@@ -65,9 +65,6 @@ def Cylinder(
     Returns:
         pv.Actor: The generated cylinder geometry.
     """
-    # ensure inputs are np arrays
-    direction = np.array(direction)
-
     # create mesh
     mesh = pv.Cylinder(direction=direction, radius=radius, height=height)
     mesh = transform_mesh(mesh, xyz=origin)
@@ -89,7 +86,7 @@ def Line(origin: Vec3, direction: Vec3, length: float, thickness: int = 1) -> pv
     Returns:
         pv.Actor: The generated line geometry.
     """
-    # ensure inputs are np arrays
+    # ensure inputs are np arrays so we can do vector math
     origin = np.array(origin)
     direction = np.array(direction)
 
@@ -113,15 +110,54 @@ def Plane(origin: Vec3, normal: Vec3, size: Vec2) -> pv.Actor:
     Returns:
         pv.Actor: The generated plane geometry.
     """
-    # ensure inputs are np arrays
-    origin = np.array(origin)
-    normal = np.array(normal)
-
     # create mesh
     mesh = pv.Plane(origin, normal, *size, *np.int32(size))
-    mesh.point_data.clear()
 
     # create geometry
     geom = pv.Actor(mapper=pv.DataSetMapper(mesh))
     geom.prop.SetEdgeVisibility(True)
+    return geom
+
+
+def Sphere(origin: Vec3, radius: float) -> pv.Actor:
+    """Creates a sphere geometry.
+
+    Args:
+        origin (Vec3): Center of the shere.
+        radius (Vec3): Radius of the sphere.
+
+    Returns:
+        pv.Actor: The generated sphere geometry.
+    """
+    # create mesh
+    mesh = pv.Sphere(radius, origin)
+
+    # create geometry
+    geom = pv.Actor(mapper=pv.DataSetMapper(mesh))
+    return geom
+
+
+def Cone(origin: Vec3, direction: Vec3, radius: float, height: float) -> pv.Actor:
+    """Creates a cone geometry.
+
+    Args:
+        origin (Vec3): Center of cone circle.
+        direction (Vec3): Direction of cone point.
+        radius (float): Radius of the cone.
+        height (float): Height of the cone.
+
+    Returns:
+        pv.Actor: The generated cone geometry.
+    """
+    # ensure inputs are np arrays so we can do vector math
+    origin = np.array(origin)
+    direction = np.array(direction)
+
+    # create mesh
+    mesh = pv.Cone(
+        origin + direction * height / 2, direction, height, radius, resolution=32
+    )
+
+    # create geometry
+    geom = pv.Actor(mapper=pv.DataSetMapper(mesh))
     return geom

@@ -1,5 +1,5 @@
 from .types import *
-from .geometries import Box, Cylinder, Line, Plane
+from .geometries import Box, Cylinder, Line, Plane, Sphere, Cone
 from .robot import Robot, Link, Joint
 from .world import World
 from .controls import (
