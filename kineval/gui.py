@@ -42,7 +42,12 @@ class VariableDisplayWidget(QWidget):
         layout.addWidget(self.display)
         self.setLayout(layout)
 
-    def update_value(self, value: str):
+    def setValue(self, value: str):
+        """Sets the value of the widget variable.
+
+        Args:
+            value (str): New value to set to.
+        """
         self.val = value
         self.display.setText(self.val)
 

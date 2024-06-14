@@ -23,6 +23,7 @@ class Joint:
         CONTINUOUS = 0  # rotates around axis, no joint limit
         REVOLUTE = 1  # rotates around axis, has joint limits
         PRISMATIC = 2  # slides along axis, has joint limits
+        FIXED = 3  # no movement
 
     def __init__(
         self,

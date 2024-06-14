@@ -1,4 +1,4 @@
-from kineval import Robot, Vec3, Vec2
+from kineval import Robot, Joint, Vec3, Vec2
 from scipy.spatial.transform import Rotation as R
 import numpy as np
 from pyvista.plotting.camera import Camera
@@ -118,4 +118,5 @@ def ApplyControl(robot: Robot, direction: float, speed: float):
         direction (float): Control direction.
         speed (float): Speed in rad/tick or m/tick.
     """
-    robot.selected.theta += direction * speed
+    if robot.selected.type != Joint.JointType.FIXED:
+        robot.selected.theta += direction * speed
