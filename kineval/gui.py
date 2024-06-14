@@ -95,11 +95,11 @@ class SliderWidget(QWidget):
         self.value_display = QLineEdit()
         self.value_display.setReadOnly(False)
         self.value_display.setFixedWidth(50)
-        self.on_update_value(slider_val)
+        self.onUpdateValue(slider_val)
 
         # attach callback for when slider and value is edited
-        self.slider.valueChanged.connect(self.on_update_value)
-        self.value_display.returnPressed.connect(self.on_update_slider)
+        self.slider.valueChanged.connect(self.onUpdateValue)
+        self.value_display.returnPressed.connect(self.onUpdateSlider)
 
         # create the layout
         layout = QHBoxLayout()
@@ -109,7 +109,7 @@ class SliderWidget(QWidget):
         layout.addWidget(self.value_display)
         self.setLayout(layout)
 
-    def set_callback(self, update_callback: Callable):
+    def setCallback(self, update_callback: Callable):
         """Sets the update callback function.
 
         Args:
@@ -117,7 +117,7 @@ class SliderWidget(QWidget):
         """
         self.update_callback = update_callback
 
-    def on_update_value(self, slider_val: float):
+    def onUpdateValue(self, slider_val: float):
         """Updates the value display if the slider is dragged.
 
         Args:
@@ -128,7 +128,7 @@ class SliderWidget(QWidget):
         if self.update_callback:
             self.update_callback(self.val)
 
-    def on_update_slider(self):
+    def onUpdateSlider(self):
         """Updates the slider when a value is entered.
         Only updates if the value is a valid number within
         the range specified during construction."""
@@ -175,7 +175,7 @@ class CollapsibleWidget(QGroupBox):
         self.toggle_button.setStyleSheet("QToolButton { border: none; }")
         self.toggle_button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.toggle_button.setArrowType(Qt.DownArrow)
-        self.toggle_button.clicked.connect(self.on_toggle)
+        self.toggle_button.clicked.connect(self.onToggle)
 
         # create a frame to hold the contents
         self.toggle_frame = QFrame()
@@ -190,7 +190,7 @@ class CollapsibleWidget(QGroupBox):
         self.setLayout(self.toggle_layout)
 
         # set to default state
-        self.on_toggle(expanded)
+        self.onToggle(expanded)
 
     def addWidget(self, widget: QWidget):
         """Adds a widget to the content.
@@ -200,7 +200,7 @@ class CollapsibleWidget(QGroupBox):
         """
         self.content.addWidget(widget)
 
-    def add_group(self, label: str, **kwargs) -> "CollapsibleWidget":
+    def addGroup(self, label: str, **kwargs) -> "CollapsibleWidget":
         """Creates a new CollapsibleWidget as a child of the
         current widget.
 
@@ -214,7 +214,7 @@ class CollapsibleWidget(QGroupBox):
         self.content.addWidget(group)
         return group
 
-    def on_toggle(self, checked: bool):
+    def onToggle(self, checked: bool):
         """Updates the arrow to either facing down or right
         depending on the state of the collapsible widget.
 

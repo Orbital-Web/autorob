@@ -7,7 +7,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 
-def traverse_robot_FK(robot: Robot):
+def TraverseRobotFK(robot: Robot):
     """Traverses the robot kinematic chain and sets the
     `transform` property of the robot and the joints.
     May call `tranverse_link_FK` and `traverse_joint_FK`.
@@ -22,10 +22,10 @@ def traverse_robot_FK(robot: Robot):
     mstack[0:3, 0:3] = R.from_euler("XYZ", np.array(robot.rpy)).as_matrix()
     mstack[0:3, 3] = robot.xyz
     robot.transform = mstack
-    traverse_link_FK(mstack, robot.base)
+    TraverseLinkFK(mstack, robot.base)
 
 
-def traverse_link_FK(mstack: Mat4D, link: Link):
+def TraverseLinkFK(mstack: Mat4D, link: Link):
     """Helper function to traverse a link during FK.
 
     Args:
@@ -36,10 +36,10 @@ def traverse_link_FK(mstack: Mat4D, link: Link):
 
     # FIXME: remove instructor solution below
     for joint in link.children:
-        traverse_joint_FK(np.copy(mstack), joint)
+        TraverseJointFK(np.copy(mstack), joint)
 
 
-def traverse_joint_FK(mstack: Mat4D, joint: Joint):
+def TraverseJointFK(mstack: Mat4D, joint: Joint):
     """Helper function to traverse a joint during FK.
 
     Args:
@@ -59,4 +59,4 @@ def traverse_joint_FK(mstack: Mat4D, joint: Joint):
     m = m @ q
     mstack = mstack @ m
     joint.transform = mstack
-    traverse_link_FK(mstack, joint.child)
+    TraverseLinkFK(mstack, joint.child)
