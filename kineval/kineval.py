@@ -69,7 +69,7 @@ class Kineval:
         timer.timeout.connect(self.update)
         timer.start(tick_millis)
 
-        # run student initialization functions
+        # TODO:  run student initialization functions
         init_robot(self.robot)
 
     def run(self):
@@ -105,7 +105,7 @@ class Kineval:
         elif Qt.Key_I in self.window.pressed_keys:
             apply_control(self.robot, 1, control_rate)
 
-        # run student functions
+        # TODO: run student functions
         traverse_robot_FK(self.robot)
 
         # update window
