@@ -1,9 +1,9 @@
 from kineval import (
     Robot,
     World,
-    move_robot,
-    turn_robot,
-    apply_control,
+    MoveRobot,
+    TurnRobot,
+    ApplyControl,
     KinevalWindow,
     KinevalWindowSettings,
 )
@@ -11,8 +11,8 @@ from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QApplication
 
 # student functions
-from kineval.init_robot import init_robot
-from kineval.forward_kinematics import traverse_robot_FK
+from kineval.init_robot import InitRobot
+from kineval.forward_kinematics import TraverseRobotFK
 
 
 class KinevalSettings:
@@ -70,7 +70,7 @@ class Kineval:
         timer.start(tick_millis)
 
         # TODO:  run student initialization functions
-        init_robot(self.robot)
+        InitRobot(self.robot)
 
     def run(self):
         """Runs the entire program."""
@@ -83,30 +83,30 @@ class Kineval:
         # control robot with WSAD
         movement_rate = self.settings.movement_speed / self.settings.tick_rate
         if Qt.Key_W in self.window.pressed_keys:
-            move_robot(self.robot, [0, 1], movement_rate)
+            MoveRobot(self.robot, [0, 1], movement_rate)
         elif Qt.Key_S in self.window.pressed_keys:
-            move_robot(self.robot, [0, -1], movement_rate)
+            MoveRobot(self.robot, [0, -1], movement_rate)
         if Qt.Key_D in self.window.pressed_keys:
-            move_robot(self.robot, [1, 0], movement_rate)
+            MoveRobot(self.robot, [1, 0], movement_rate)
         elif Qt.Key_A in self.window.pressed_keys:
-            move_robot(self.robot, [-1, 0], movement_rate)
+            MoveRobot(self.robot, [-1, 0], movement_rate)
 
         # turn robot with QE
         turn_rate = self.settings.turn_speed / self.settings.tick_rate
         if Qt.Key_Q in self.window.pressed_keys:
-            turn_robot(self.robot, -1, turn_rate)
+            TurnRobot(self.robot, -1, turn_rate)
         elif Qt.Key_E in self.window.pressed_keys:
-            turn_robot(self.robot, 1, turn_rate)
+            TurnRobot(self.robot, 1, turn_rate)
 
         # apply control to joint with UI
         control_rate = self.settings.control_speed / self.settings.tick_rate
         if Qt.Key_U in self.window.pressed_keys:
-            apply_control(self.robot, -1, control_rate)
+            ApplyControl(self.robot, -1, control_rate)
         elif Qt.Key_I in self.window.pressed_keys:
-            apply_control(self.robot, 1, control_rate)
+            ApplyControl(self.robot, 1, control_rate)
 
         # TODO: run student functions
-        traverse_robot_FK(self.robot)
+        TraverseRobotFK(self.robot)
 
         # update window
         self.window.update()

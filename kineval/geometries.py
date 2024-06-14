@@ -4,7 +4,7 @@ import numpy as np
 import pyvista as pv
 
 
-def transform_mesh(mesh: pv.DataSet, xyz: Vec3 = None, rpy: Vec3 = None) -> pv.DataSet:
+def TransformMesh(mesh: pv.DataSet, xyz: Vec3 = None, rpy: Vec3 = None) -> pv.DataSet:
     """Transforms a mesh.
 
     Args:
@@ -41,7 +41,7 @@ def Box(origin: Vec3, shape: Vec3, rpy: Vec3 = None) -> pv.Actor:
     # create mesh
     x, y, z = shape
     mesh = pv.Box([-x / 2.0, x / 2.0, -y / 2.0, y / 2.0, -z / 2.0, z / 2.0])
-    mesh = transform_mesh(mesh, xyz=origin, rpy=rpy)
+    mesh = TransformMesh(mesh, xyz=origin, rpy=rpy)
 
     # create geometry
     geom = pv.Actor(mapper=pv.DataSetMapper(mesh))
@@ -67,7 +67,7 @@ def Cylinder(
     """
     # create mesh
     mesh = pv.Cylinder(direction=direction, radius=radius, height=height)
-    mesh = transform_mesh(mesh, xyz=origin)
+    mesh = TransformMesh(mesh, xyz=origin)
 
     # create geometry
     geom = pv.Actor(mapper=pv.DataSetMapper(mesh))

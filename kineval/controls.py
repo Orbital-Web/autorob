@@ -4,7 +4,7 @@ import numpy as np
 from pyvista.plotting.camera import Camera
 
 
-def move_robot(robot: Robot, direction: Vec2, speed: float):
+def MoveRobot(robot: Robot, direction: Vec2, speed: float):
     """Moves the robot in the specified direction.
     Increments `robot.xyz` by some vector v with magnitude
     `speed`, depending on `robot.facing` and `direction`.
@@ -35,7 +35,7 @@ def move_robot(robot: Robot, direction: Vec2, speed: float):
     # camera.SetFocalPoint(robot.base.geom.GetCenter())
 
 
-def turn_robot(robot: Robot, direction: float, speed: float):
+def TurnRobot(robot: Robot, direction: float, speed: float):
     """Turns the robot in the specified direction.
 
     Args:
@@ -51,7 +51,7 @@ def turn_robot(robot: Robot, direction: float, speed: float):
     robot.facing = mstack @ np.array([1, 0, 0], float)
 
 
-def traverse_up_joint(robot: Robot, color: Vec3, selected_color: Vec3):
+def TraverseJointUp(robot: Robot, color: Vec3, selected_color: Vec3):
     """Selects the next joint down the kinematic
     hierarchy.
 
@@ -67,7 +67,7 @@ def traverse_up_joint(robot: Robot, color: Vec3, selected_color: Vec3):
         robot.selected.geom.prop.SetColor(*selected_color)  # update color
 
 
-def traverse_down_joint(robot: Robot, color: Vec3, selected_color: Vec3):
+def TraverseJointDown(robot: Robot, color: Vec3, selected_color: Vec3):
     """Selects the previous joint down the kinematic
     hierarchy.
 
@@ -83,7 +83,7 @@ def traverse_down_joint(robot: Robot, color: Vec3, selected_color: Vec3):
         robot.selected.geom.prop.SetColor(*selected_color)  # update color
 
 
-def traverse_adjacent_joint(robot: Robot, color: Vec3, selected_color: Vec3):
+def TraverseJointAdjacent(robot: Robot, color: Vec3, selected_color: Vec3):
     """Selects the adjacent joint of the same link.
 
     Args:
@@ -107,7 +107,7 @@ def traverse_adjacent_joint(robot: Robot, color: Vec3, selected_color: Vec3):
     robot.selected.geom.prop.SetColor(*selected_color)  # update color
 
 
-def apply_control(robot: Robot, direction: float, speed: float):
+def ApplyControl(robot: Robot, direction: float, speed: float):
     """Modifies the robot's selected joint's theta in the
     specified direction. Turns the robot's selected joint
     if the joint is continuous or revolute. Extends or
