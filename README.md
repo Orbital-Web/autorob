@@ -42,7 +42,7 @@ The rendering of the robot, world, and GUI is handled inside `renderer`. In [PyV
 
 Inside `geometries` are function which will generate a PyVista `Actor` object, which you can add to the plotter inside `renderer` to display. The pre-existing geometries should be sufficient, but you may add new ones using [this documentation](https://docs.pyvista.org/version/stable/api/utilities/geometric).
 
-`controls` has all the functions that has to do with user input, such as moving the robot or turning a joint. If you want new user controls, please define them in here, and either add them inside `Kineval.update` if you want to continuously check for them, or inside `renderer.KinevalWindow.on_key_press` if you only want the function to run once per key press. 
+`controls` has all the functions that has to do with user input, such as moving the robot or turning a joint. If you want new user controls, please define them in here, and either add them inside `Kineval.update` if you want to continuously check for them, or inside `renderer.KinevalWindow.onKeyPress` if you only want the function to run once per key press. 
 
 `gui` has all the code for widget classes that are used inside the renderer's gui. 
 
