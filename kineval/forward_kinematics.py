@@ -10,7 +10,7 @@ from scipy.spatial.transform import Rotation as R
 def TraverseRobotFK(robot: Robot):
     """Traverses the robot kinematic chain and sets the
     `transform` property of the robot and the joints.
-    May call `tranverse_link_FK` and `traverse_joint_FK`.
+    May call `TraverseLinkFK` and `TraverseJointFK`.
 
     Args:
         robot (Robot): The robot to do forward kinematics on.
@@ -41,6 +41,7 @@ def TraverseLinkFK(mstack: Mat4D, link: Link):
 
 def TraverseJointFK(mstack: Mat4D, joint: Joint):
     """Helper function to traverse a joint during FK.
+    May call `ApplyJointLimits`.
 
     Args:
         mstack (Mat4D): Current transformation matrix on stack.
@@ -49,14 +50,38 @@ def TraverseJointFK(mstack: Mat4D, joint: Joint):
     # TODO: YOUR CODE HERE
 
     # FIXME: remove instructor solution below
-    q = np.identity(4)
-    quat = [*(np.sin(joint.theta / 2) * joint.axis), np.cos(joint.theta / 2)]
-    q[0:3, 0:3] = R.from_quat(quat).as_matrix()
-
     m = np.identity(4)
     m[0:3, 0:3] = R.from_euler("XYZ", np.array(joint.rpy)).as_matrix()
     m[0:3, 3] = joint.xyz
+
+    # apply joint configuration
+    ApplyJointLimits(joint)
+    q = np.identity(4)
+    if joint.type == Joint.JointType.PRISMATIC:
+        m[0:3, 3] += joint.axis * joint.theta
+    else:
+        quat = [*(np.sin(joint.theta / 2) * joint.axis), np.cos(joint.theta / 2)]
+        q[0:3, 0:3] = R.from_quat(quat).as_matrix()
     m = m @ q
+
     mstack = mstack @ m
     joint.transform = mstack
     TraverseLinkFK(mstack, joint.child)
+
+
+def ApplyJointLimits(joint: Joint):
+    """Ensures the joint theta does not exceed it joint
+    limits. If `joint.limits` is None, the joint does not
+    have a joint limit. Otherwise, ensure `joint.theta`
+    is within `joint.limits[0]` and `joint.limits[1]`.
+
+    Args:
+        joint (Joint): The joint to apply joint limits.
+    """
+    # TODO: YOUR CODE HERE
+
+    # FIXME: remove instructor solution below
+    if not joint.limits:
+        return
+    lower, upper = joint.limits
+    joint.theta = max(lower, min(upper, joint.theta))

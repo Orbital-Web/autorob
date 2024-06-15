@@ -1,6 +1,7 @@
 from kineval import (
     Robot,
     World,
+    Sphere,
     Cylinder,
     Line,
     TraverseJointUp,
@@ -157,12 +158,22 @@ class KinevalWindow(QMainWindow):
         # create robot joint geoms and add them to window
         for joint in self.robot.joints:
             # joint geom
-            joint.geom = Cylinder(
-                [0.0, 0.0, 0.0],
-                joint.axis,
-                self.settings.joint_size,
-                0.5 * self.settings.joint_size,
-            )
+            if joint.type == joint.JointType.FIXED:
+                joint.geom = Sphere([0.0, 0.0, 0.0], 0.5 * self.settings.joint_size)
+            elif joint.type == joint.JointType.PRISMATIC:
+                joint.geom = Cylinder(
+                    [0.0, 0.0, 0.0],
+                    joint.axis,
+                    0.25 * self.settings.joint_size,
+                    2 * self.settings.joint_size,
+                )
+            else:
+                joint.geom = Cylinder(
+                    [0.0, 0.0, 0.0],
+                    joint.axis,
+                    self.settings.joint_size,
+                    0.5 * self.settings.joint_size,
+                )
             joint.geom.prop.SetColor(*self.settings.joint_color)
             joint.geom.prop.SetOpacity(self.settings.joint_opacity)
             self.plotter.add_actor(joint.geom)
@@ -469,10 +480,20 @@ class KinevalWindow(QMainWindow):
         # add update robot joint geom colors
         for joint in self.robot.joints:
             # recreate mesh entirely as there is no neat way to scale
-            joint_geom = Cylinder(
-                [0.0, 0.0, 0.0],
-                joint.axis,
-                self.settings.joint_size,
-                0.5 * self.settings.joint_size,
-            )
+            if joint.type == joint.JointType.FIXED:
+                joint_geom = Sphere([0.0, 0.0, 0.0], 0.5 * self.settings.joint_size)
+            elif joint.type == joint.JointType.PRISMATIC:
+                joint_geom = Cylinder(
+                    [0.0, 0.0, 0.0],
+                    joint.axis,
+                    0.25 * self.settings.joint_size,
+                    2 * self.settings.joint_size,
+                )
+            else:
+                joint_geom = Cylinder(
+                    [0.0, 0.0, 0.0],
+                    joint.axis,
+                    self.settings.joint_size,
+                    0.5 * self.settings.joint_size,
+                )
             joint.geom.mapper = joint_geom.mapper
