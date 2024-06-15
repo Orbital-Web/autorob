@@ -1,6 +1,7 @@
 from kineval import (
     Robot,
     World,
+    Sphere,
     Cylinder,
     Line,
     TraverseJointUp,
@@ -26,6 +27,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy,
 )
 import numpy as np
+import pyvista as pv
 
 
 class KinevalWindowSettings:
@@ -156,12 +158,22 @@ class KinevalWindow(QMainWindow):
         # create robot joint geoms and add them to window
         for joint in self.robot.joints:
             # joint geom
-            joint.geom = Cylinder(
-                [0.0, 0.0, 0.0],
-                joint.axis,
-                self.settings.joint_size,
-                0.5 * self.settings.joint_size,
-            )
+            if joint.type == joint.JointType.FIXED:
+                joint.geom = Sphere([0.0, 0.0, 0.0], 0.5 * self.settings.joint_size)
+            elif joint.type == joint.JointType.PRISMATIC:
+                joint.geom = Cylinder(
+                    [0.0, 0.0, 0.0],
+                    joint.axis,
+                    0.25 * self.settings.joint_size,
+                    2 * self.settings.joint_size,
+                )
+            else:
+                joint.geom = Cylinder(
+                    [0.0, 0.0, 0.0],
+                    joint.axis,
+                    self.settings.joint_size,
+                    0.5 * self.settings.joint_size,
+                )
             joint.geom.prop.SetColor(*self.settings.joint_color)
             joint.geom.prop.SetOpacity(self.settings.joint_opacity)
             self.plotter.add_actor(joint.geom)
@@ -212,8 +224,12 @@ class KinevalWindow(QMainWindow):
         robot_info.addWidget(VariableDisplayWidget("Robot", self.robot.name))
         robot_info.addWidget(VariableDisplayWidget("Base", self.robot.base.name))
         robot_info.addWidget(
-            VariableDisplayWidget("Selection", self.robot.selected.name)
+            VariableDisplayWidget("Endeffector", self.robot.endeffector.name)
         )
+        self.gui.selection_widget = VariableDisplayWidget(
+            "Selection", self.robot.selected.name
+        )
+        robot_info.addWidget(self.gui.selection_widget)
         world_info = info_display.addGroup("World", expanded=True)
         world_info.addWidget(VariableDisplayWidget("World", self.world.name))
 
@@ -240,6 +256,11 @@ class KinevalWindow(QMainWindow):
             lambda: self.onUpdateVisibilityTerrain(terrain_toggle)
         )
         world_settings.addWidget(terrain_toggle)
+
+        # add joint scale slider
+        joint_size_slider = SliderWidget("Size", self.settings.joint_size)
+        joint_size_slider.setCallback(self.onUpdateSizeJoint)
+        joint_settings.addWidget(joint_size_slider)
 
         # add slider for link, joint, and terrain rgbs
         joint_settings.addWidget(QLabel("Joint"))
@@ -321,14 +342,17 @@ class KinevalWindow(QMainWindow):
             TraverseJointUp(
                 self.robot, self.settings.joint_color, self.settings.selection_color
             )
+            self.gui.selection_widget.setValue(self.robot.selected.name)
         elif key == Qt.Key_K:  # traverse down joint
             TraverseJointDown(
                 self.robot, self.settings.joint_color, self.settings.selection_color
             )
+            self.gui.selection_widget.setValue(self.robot.selected.name)
         elif key == Qt.Key_L:  # traverse adjacent joint
             TraverseJointAdjacent(
                 self.robot, self.settings.joint_color, self.settings.selection_color
             )
+            self.gui.selection_widget.setValue(self.robot.selected.name)
 
     def onKeyRelease(self, event: QKeyEvent):
         """Removes key from `pressed_key` if it has been released.
@@ -358,7 +382,7 @@ class KinevalWindow(QMainWindow):
 
     def onUpdateColorLink(self, value: float, index: int):
         """Updates `self.settings.robot_color` at index `index`,
-        and the updates the link geometry colors.
+        and updates the link geometry colors.
 
         Args:
             value (float): Value of slider to set to.
@@ -372,7 +396,7 @@ class KinevalWindow(QMainWindow):
 
     def onUpdateColorJoint(self, value: float, index: int):
         """Updates `self.settings.joint_color` at index `index`,
-        and the updates the joint geometry colors.
+        and updates the joint geometry colors.
 
         Args:
             value (float): Value of slider to set to.
@@ -389,7 +413,7 @@ class KinevalWindow(QMainWindow):
 
     def onUpdateColorSelection(self, value: float, index: int):
         """Updates `self.settings.selection_color` at index `index`,
-        and the updates the selected joint's geometry color.
+        and updates the selected joint's geometry color.
 
         Args:
             value (float): Value of slider to set to.
@@ -400,7 +424,7 @@ class KinevalWindow(QMainWindow):
 
     def onUpdateColorTerrain(self, value: float, index: int):
         """Updates `self.settings.terrain_color` at index `index`,
-        and the updates the terrain geometry color.
+        and updates the terrain geometry color.
 
         Args:
             value (float): Value of slider to set to.
@@ -443,3 +467,33 @@ class KinevalWindow(QMainWindow):
             button (QCheckBox): Button used for toggle.
         """
         self.world.terrain.SetVisibility(button.isChecked())
+
+    def onUpdateSizeJoint(self, value: float):
+        """Updates `self.settings.joint_size` and
+        updates the joint geometry.
+
+        Args:
+            value (float): Value of joint size.
+        """
+        self.settings.joint_size = value
+
+        # add update robot joint geom colors
+        for joint in self.robot.joints:
+            # recreate mesh entirely as there is no neat way to scale
+            if joint.type == joint.JointType.FIXED:
+                joint_geom = Sphere([0.0, 0.0, 0.0], 0.5 * self.settings.joint_size)
+            elif joint.type == joint.JointType.PRISMATIC:
+                joint_geom = Cylinder(
+                    [0.0, 0.0, 0.0],
+                    joint.axis,
+                    0.25 * self.settings.joint_size,
+                    2 * self.settings.joint_size,
+                )
+            else:
+                joint_geom = Cylinder(
+                    [0.0, 0.0, 0.0],
+                    joint.axis,
+                    self.settings.joint_size,
+                    0.5 * self.settings.joint_size,
+                )
+            joint.geom.mapper = joint_geom.mapper

@@ -4,3 +4,5 @@ numpy==1.26.4
 PyQt5==5.15.10
 pyvista==0.43.8
 pyvistaqt==0.11.0
+trimesh==4.4.1
+urchin==0.0.27
