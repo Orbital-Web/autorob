@@ -1,4 +1,4 @@
-from kineval import Robot, Link, Joint, Mat4D
+from kineval import Robot, Link, Joint, Mat4
 
 # TODO: you may want to import other modules, such as numpy or scipy.spatial.transform
 
@@ -16,6 +16,7 @@ def TraverseRobotFK(robot: Robot):
         robot (Robot): The robot to do forward kinematics on.
     """
     # TODO: YOUR CODE HERE
+    # Build the base mstack and recursively call `TraverseLinkFK` and `TraverseJointFK`
 
     # FIXME: remove instructor solution below
     mstack = np.identity(4)
@@ -25,7 +26,7 @@ def TraverseRobotFK(robot: Robot):
     TraverseLinkFK(mstack, robot.base)
 
 
-def TraverseLinkFK(mstack: Mat4D, link: Link):
+def TraverseLinkFK(mstack: Mat4, link: Link):
     """Helper function to traverse a link during FK.
 
     Args:
@@ -33,13 +34,14 @@ def TraverseLinkFK(mstack: Mat4D, link: Link):
         link (Link): Link to traverse.
     """
     # TODO: YOUR CODE HERE
+    # Call `TraverseJointFK` for the child joints
 
     # FIXME: remove instructor solution below
     for joint in link.children:
         TraverseJointFK(np.copy(mstack), joint)
 
 
-def TraverseJointFK(mstack: Mat4D, joint: Joint):
+def TraverseJointFK(mstack: Mat4, joint: Joint):
     """Helper function to traverse a joint during FK.
     May call `ApplyJointLimits`.
 
@@ -48,6 +50,7 @@ def TraverseJointFK(mstack: Mat4D, joint: Joint):
         joint (Joint): Joint to traverse.
     """
     # TODO: YOUR CODE HERE
+    # Update the mstack and call `TraverseLinkFK` for the child link
 
     # FIXME: remove instructor solution below
     m = np.identity(4)
@@ -79,6 +82,7 @@ def ApplyJointLimits(joint: Joint):
         joint (Joint): The joint to apply joint limits.
     """
     # TODO: YOUR CODE HERE
+    # Clamp `joint.theta` within the joint limits
 
     # FIXME: remove instructor solution below
     if not joint.limits:
