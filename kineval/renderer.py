@@ -1,6 +1,7 @@
 from kineval import (
     Robot,
     World,
+    Box,
     Sphere,
     Cylinder,
     Line,
@@ -149,11 +150,24 @@ class KinevalWindow(QMainWindow):
     def __add_robot_to_plotter(self):
         """Creates and adds the robot link and joint geometries
         to the plotter widget."""
-        # add robot link geoms to window
+        # add robot link and collision geoms to window
         for link in self.robot.links:
+            # link geom
             link.geom.prop.SetColor(*self.settings.robot_color)
             link.geom.prop.SetOpacity(self.settings.robot_opacity)
             self.plotter.add_actor(link.geom)
+            # link collision geom
+            bbox_shape = [
+                link.bbox[1] - link.bbox[0],
+                link.bbox[3] - link.bbox[2],
+                link.bbox[5] - link.bbox[4],
+            ]
+            link.bbox_geom = Box(link.center, bbox_shape)
+            link.bbox_geom.prop.SetColor(1.0, 0.0, 0.0)
+            link.bbox_geom.prop.SetLineWidth(3)
+            link.bbox_geom.prop.SetRepresentationToWireframe()
+            link.bbox_geom.SetVisibility(False)
+            self.plotter.add_actor(link.bbox_geom)
 
         # create robot joint geoms and add them to window
         for joint in self.robot.joints:
@@ -197,6 +211,10 @@ class KinevalWindow(QMainWindow):
         self.plotter.add_actor(self.world.terrain)
         self.world.terrain.prop.SetColor(*self.settings.terrain_color)
         self.world.terrain.prop.SetOpacity(self.settings.terrain_opacity)
+
+        # add obstacles
+        for obstacle in self.world.obstacles:
+            self.plotter.add_actor(obstacle.geom)
 
     def __createGUIWidget(self):
         """Initializes a dock widget for displaying an
@@ -302,14 +320,14 @@ class KinevalWindow(QMainWindow):
         """Does all the visual updates of the window."""
         # update link visuals
         for link in self.robot.links:
-            # update link transformation
-            link.geom.user_matrix = (
+            # update link and link collision transformation
+            link_transform = (
                 self.robot.transform
                 if link == self.robot.base
                 else link.parent.transform
             )
-            # update link color
-            link.geom.prop.SetColor(*self.settings.robot_color)
+            link.geom.user_matrix = link_transform
+            link.bbox_geom.user_matrix = link_transform
 
         # update joint visuals
         for joint in self.robot.joints:

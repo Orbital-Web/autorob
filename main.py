@@ -41,7 +41,7 @@ if __name__ == "__main__":
         "-w",
         "--world",
         type=str,
-        default="world_empty",
+        default="world_basic",
         help="Name of the py file with the world you want to load",
     )
     args = parser.parse_args()

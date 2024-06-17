@@ -1,4 +1,4 @@
-from kineval import Vec2, Vec3, Mat4D
+from kineval import Vec2, Vec3, Mat4, Box
 import numpy as np
 import pyvista as pv
 from enum import Enum
@@ -14,6 +14,10 @@ class Link:
         self.children: list[Joint] = []  # list of children joints
         # visual
         self.geom: pv.Actor = geom  # rendered geometry of link
+        self.bbox_geom: pv.Actor = None  # rendered geometry of link bounds
+        # collision
+        self.center: Vec3 = geom.GetCenter()  # center of link geometry
+        self.bbox: list[float] = geom.GetBounds()  # xyz bounds of the link geometry
 
 
 class Joint:
@@ -54,7 +58,7 @@ class Joint:
         self.limits: Vec2 | None = limits  # [min, max] of theta or None for no limits
         # dynamic configurations
         self.theta: float = 0.0  # configuration of joint
-        self.transform: Mat4D = np.identity(4, float)  # homogenous transform matrix
+        self.transform: Mat4 = np.identity(4, float)  # homogenous transform matrix
         # visual
         self.geom: pv.Actor = None  # rendered geometry of joint
         self.axis_geom: pv.Actor = None  # rendered geometry of joint axis
@@ -86,7 +90,7 @@ class Robot:
         self.rpy: Vec3 = (
             np.zeros((3), float) if rpy is None else np.array(rpy, float)
         )  # base rotation
-        self.transform: Mat4D = np.identity(4, float)  # homogenous transform matrix
+        self.transform: Mat4 = np.identity(4, float)  # homogenous transform matrix
         self.facing: Vec3 = np.array([1, 0, 0], float)  # unit vector of front direction
         # visual
         self.selected: Joint = joints[0]  # currently selected joint on UI
