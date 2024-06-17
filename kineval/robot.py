@@ -1,4 +1,4 @@
-from kineval import Vec2, Vec3, Mat4
+from kineval import Vec2, Vec3, Mat4, Box
 import numpy as np
 import pyvista as pv
 from enum import Enum
@@ -14,6 +14,10 @@ class Link:
         self.children: list[Joint] = []  # list of children joints
         # visual
         self.geom: pv.Actor = geom  # rendered geometry of link
+        self.bbox_geom: pv.Actor = None  # rendered geometry of link bounds
+        # collision
+        self.center: Vec3 = geom.GetCenter()  # center of link geometry
+        self.bbox: list[float] = geom.GetBounds()  # xyz bounds of the link geometry
 
 
 class Joint:

@@ -1,15 +1,28 @@
-from kineval import Plane, Vec2, Mat2
+from kineval import Plane, Vec4, Vec3, Vec2, Mat2, Sphere, Box
 import numpy as np
 import pyvista as pv
+
+
+class Obstacle:
+    """A basic definition of a spherical obstacle."""
+
+    def __init__(self, origin: Vec3, radius: float):
+        # structure
+        self.origin: Vec3 = np.array(origin, float)  # center of obstalce
+        self.radius: float = radius  # radius of obstacle
+        self.origin_homogeneous: Vec4 = np.array(
+            [*origin, 1], float
+        )  # homogeneous obstacle center
+        self.geom: pv.Actor = Sphere(origin, radius)  # rendered geometry of obstacle
 
 
 class World:
     """A class for holding all the obstacles, terrain,
     etc. that are in the world."""
 
-    def __init__(self, name: str, obstacles: list = None, size: Vec2 = None):
+    def __init__(self, name: str, obstacles: list[Obstacle] = None, size: Vec2 = None):
         self.name: str = name  # name of world
-        self.obstacles: list = (
+        self.obstacles: list[Obstacle] = (
             [] if obstacles is None else obstacles
         )  # list of obstacles
         self.size: Vec2 = (

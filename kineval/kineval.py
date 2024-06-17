@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QApplication
 # student functions
 from kineval.init_robot import InitRobot
 from kineval.forward_kinematics import TraverseRobotFK
+from kineval.collision import IsCollision
 
 
 class KinevalSettings:
@@ -107,6 +108,7 @@ class Kineval:
 
         # TODO: run student functions
         TraverseRobotFK(self.robot)
+        IsCollision(self.robot, self.world)
 
         # update window
         self.window.update()

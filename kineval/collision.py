@@ -33,6 +33,7 @@ def IsCollision(robot: Robot, world: World) -> bool:
     Returns:
         bool: Whether the robot is in collision.
     """
+    # NOTE: This function is already written for you
     configuration = RobotConfiguration(robot)  # get current configuration
     return IsPoseCollison(robot, configuration, world)
 
@@ -52,8 +53,6 @@ def IsPoseCollison(
     Returns:
         bool: Whether the robot is in collision.
     """
-    # NOTE: This function is already written for you
-
     # check whether center of base is within bounds of the world
     robot_x, robot_y = configuration.base_position
     if (
@@ -62,10 +61,13 @@ def IsPoseCollison(
         or robot_y < world.bounds[1][0]
         or robot_y > world.bounds[1][1]
     ):
+        robot.base.bbox_geom.SetVisibility(True)
         return True
+    robot.base.bbox_geom.SetVisibility(False)
 
     # TODO: YOUR CODE HERE
-    # Build the base mstack and resursively call `CollisionLinkFK` and `CollisionJointFK`
+    # Finish the rest of the function by building the base mstack and resursively
+    # callin `CollisionLinkFK` and `CollisionJointFK`
     # DO NOT modify any part of the robot when traversing
 
     # FIXME: remove instructor solution below
@@ -130,11 +132,22 @@ def CollisionLinkFK(
     # NOTE: This function is already written for you
 
     # check collision of this link
+    inverse_transform = np.linalg.inv(mstack)
+    for obstacle in world.obstacles:
+        # transform obstacle origin to link frame
+        origin_local = (inverse_transform @ obstacle.origin_homogeneous)[:3]
+        # find closest point on box to obstacle
+        closest = np.clip(origin_local, link.bbox[::2], link.bbox[1::2])
+        # check if distance is less than radius (in collision)
+        if np.linalg.norm(closest - origin_local) <= obstacle.radius:
+            link.bbox_geom.SetVisibility(True)
+            return True
+        # not in collision
+        link.bbox_geom.SetVisibility(False)
 
     # recurse to child joints
     for joint in link.children:
-        collided = CollisionJointFK(np.copy(mstack), joint, configuration, world)
-        if collided:
+        if CollisionJointFK(np.copy(mstack), joint, configuration, world):
             return True
 
     # no collision in any of its descendants
