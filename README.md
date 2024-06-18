@@ -10,10 +10,10 @@ This is the repository for Autorob 24-25. Note that students will not be seeing 
 
 ### Environment
 
-1. In your terminal, create a Python venv and install the required modules.
+1. In your terminal, create a Python venv and install the required modules. 
    ```
-   py -m venv .venv
-   py -m pip install -r requirements.txt
+   python -m venv .venv
+   python -m pip install -r requirements.txt
    ```
 2. If you have [VS Code](https://code.visualstudio.com), you should install the [Python Black Formatter](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter) so your code is automatically formatted. Make sure to follow the instructions on the extension page to enable automatic formatting upon save.
 
