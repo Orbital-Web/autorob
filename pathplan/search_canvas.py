@@ -116,10 +116,10 @@ def main(algorithm,map):
                 row, col = get_clicked_pos(pos)
                 node = grid[row][col]
 
-                if start == None :
+                if not start and node != end and node.get_color() != BARRIER_COLOR:
                     node.set_color(START_COLOR)
                     start = node
-                elif (end == None and node != start):
+                elif not end and node != start and node.get_color() != BARRIER_COLOR:
                     node.set_color(END_COLOR)
                     end = node
                 elif node != end and node != start :
@@ -174,6 +174,7 @@ def main(algorithm,map):
                     path_length = 0
                 # use E to change the end only
                 # TODO
+                # use S to save your map
                     
     pygame.quit()          
 
