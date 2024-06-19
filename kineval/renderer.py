@@ -118,12 +118,10 @@ class KinevalWindow(QMainWindow):
         self.resize(960, 540)
 
         # initialize widgets
-        self.__create_plotter_widget()
-        self.__add_robot_to_plotter()
-        self.__addWorldToPlotter()
-        self.__createGUIWidget()
+        self.createPlotterWidget()
+        self.createGUIWidget()
 
-    def __create_plotter_widget(self):
+    def createPlotterWidget(self):
         """Initializes the main plotter widget for displaying the
         world and the robot."""
         # create central widget to show plotter
@@ -147,7 +145,11 @@ class KinevalWindow(QMainWindow):
         self.plotter.keyReleaseEvent = self.onKeyRelease
         self.plotter.iren.add_observer("InteractionEvent", self.onCameraMove)
 
-    def __add_robot_to_plotter(self):
+        # add actors to the plotter
+        self.__addRobotToPlotter()
+        self.__addWorldToPlotter()
+
+    def __addRobotToPlotter(self):
         """Creates and adds the robot link and joint geometries
         to the plotter widget."""
         # add robot link and collision geoms to window
@@ -216,7 +218,7 @@ class KinevalWindow(QMainWindow):
         for obstacle in self.world.obstacles:
             self.plotter.add_actor(obstacle.geom)
 
-    def __createGUIWidget(self):
+    def createGUIWidget(self):
         """Initializes a dock widget for displaying an
         interactive GUI for controlling the program."""
         # create dock widget to show gui
@@ -232,12 +234,12 @@ class KinevalWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         scroll.setMinimumWidth(288)
         self.gui.setWidget(scroll)
-        gui_layout = QVBoxLayout()
-        scroll.setLayout(gui_layout)
+        self.gui_layout = QVBoxLayout()
+        scroll.setLayout(self.gui_layout)
 
         # show information (robot and world)
         info_display = CollapsibleWidget("Info", expanded=True)
-        gui_layout.addWidget(info_display)
+        self.gui_layout.addWidget(info_display)
         robot_info = info_display.addGroup("Robot", expanded=True)
         robot_info.addWidget(VariableDisplayWidget("Robot", self.robot.name))
         robot_info.addWidget(VariableDisplayWidget("Base", self.robot.base.name))
@@ -252,8 +254,17 @@ class KinevalWindow(QMainWindow):
         world_info.addWidget(VariableDisplayWidget("World", self.world.name))
 
         # display settings (link, joints, world)
+        self.__addDisplayGUI()
+
+        # add spacing to push collapsed content to the top
+        self.gui_layout.addSpacerItem(
+            QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        )
+
+    def __addDisplayGUI(self):
+        """Creates and adds display settings to the GUI."""
         display_settings = CollapsibleWidget("Display Settings")
-        gui_layout.addWidget(display_settings)
+        self.gui_layout.addWidget(display_settings)
         link_settings = display_settings.addGroup("Links")
         joint_settings = display_settings.addGroup("Joints")
         world_settings = display_settings.addGroup("World")
@@ -310,11 +321,6 @@ class KinevalWindow(QMainWindow):
                 lambda val, i=i: self.onUpdateColorSelection(val, i)
             )
             joint_settings.addWidget(select_color_slider)
-
-        # add spacing to push collapsed content to the top
-        gui_layout.addSpacerItem(
-            QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        )
 
     def update(self):
         """Does all the visual updates of the window."""
