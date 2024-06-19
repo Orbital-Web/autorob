@@ -27,6 +27,10 @@ This is the repository for Autorob 24-25. Note that students will not be seeing 
    ```
    .\venv\Scripts\activate
    ```
+   On Mac, it will look something like this.
+   ```
+   source .venv/bin/activate
+   ```
 3. Once you are done, commit and push your changes.
    ```
    git add *
