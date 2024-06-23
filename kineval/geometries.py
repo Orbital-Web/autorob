@@ -16,13 +16,13 @@ def TransformMesh(mesh: pv.DataSet, xyz: Vec3 = None, rpy: Vec3 = None) -> pv.Da
         pv.DataSet: The transformed mesh.
     """
     # no transformation needed
-    if not xyz and not rpy:
+    if xyz is None and rpy is None:
         return mesh
 
-    transform = np.identity(4)
-    if xyz:
+    transform = np.identity(4, float)
+    if xyz is not None:
         transform[0:3, 3] = np.array(xyz)
-    if rpy:
+    if rpy is not None:
         transform[0:3, 0:3] = R.from_euler("XYZ", np.array(rpy)).as_matrix()
     return mesh.transform(transform)
 

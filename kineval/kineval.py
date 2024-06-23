@@ -4,16 +4,18 @@ from kineval import (
     MoveRobot,
     TurnRobot,
     ApplyControl,
+    InitRobot,  # FK
+    TraverseRobotFK,  # FK, Quaternion
+    IsCollision,  # RRT
+    IsPoseCollison,  # RRT
+    RRTInfo,  # RRT
+    ResetRRT,  # RRT
+    StepRRT,  # RRT
     KinevalWindow,
     KinevalWindowSettings,
 )
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QApplication
-
-# student functions
-from kineval.init_robot import InitRobot
-from kineval.forward_kinematics import TraverseRobotFK
-from kineval.collision import IsCollision
 
 
 class KinevalSettings:
@@ -22,10 +24,11 @@ class KinevalSettings:
     def __init__(
         self,
         window_settings: KinevalWindowSettings = None,
-        tick_rate: float = 60,
-        movement_speed: float = 5,
-        turn_speed: float = 3,
-        control_speed: float = 1,
+        tick_rate: int = 60,
+        movement_speed: float = 5.0,
+        turn_speed: float = 3.0,
+        control_speed: float = 1.0,
+        enable_rrt: bool = False,
     ) -> None:
         self.window_settings: KinevalWindowSettings = (
             KinevalWindowSettings() if window_settings is None else window_settings
@@ -34,6 +37,7 @@ class KinevalSettings:
         self.movement_speed: float = movement_speed  # robot movement speed in m/s
         self.turn_speed: float = turn_speed  # robot turn speed in rad/s
         self.control_speed: float = control_speed  # robot control speed in rad or m/s
+        self.enable_rrt: bool = enable_rrt  # whether rrt is enabled
 
 
 class Kineval:
@@ -107,6 +111,8 @@ class Kineval:
             ApplyControl(self.robot, 1, control_rate)
 
         # TODO: run student functions
+        if self.settings.enable_rrt:
+            pass
         TraverseRobotFK(self.robot)
         IsCollision(self.robot, self.world)
 

@@ -377,6 +377,8 @@ class KinevalWindow(QMainWindow):
                 self.robot, self.settings.joint_color, self.settings.selection_color
             )
             self.gui.selection_widget.setValue(self.robot.selected.name)
+        elif key == Qt.Key_M:  # run RRT:
+            pass
 
     def onKeyRelease(self, event: QKeyEvent):
         """Removes key from `pressed_key` if it has been released.

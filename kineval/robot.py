@@ -1,4 +1,4 @@
-from kineval import Vec2, Vec3, Mat4, Box
+from kineval import Vec2, Vec3, Mat4, Vec
 import numpy as np
 import pyvista as pv
 from enum import Enum
@@ -16,8 +16,10 @@ class Link:
         self.geom: pv.Actor = geom  # rendered geometry of link
         self.bbox_geom: pv.Actor = None  # rendered geometry of link bounds
         # collision
-        self.center: Vec3 = geom.GetCenter()  # center of link geometry
-        self.bbox: list[float] = geom.GetBounds()  # xyz bounds of the link geometry
+        self.center: Vec3 = np.array(geom.GetCenter(), float)  # center of link geometry
+        self.bbox: Vec = np.array(
+            geom.GetBounds(), float
+        )  # xyz bounds of the link geometry
 
 
 class Joint:
