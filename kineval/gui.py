@@ -32,7 +32,7 @@ class VariableDisplayWidget(QWidget):
         # create the display
         self.display = QLineEdit()
         self.display.setReadOnly(True)
-        self.display.setFixedWidth(150)
+        self.display.setFixedWidth(125)
         self.display.setText(self.val)
 
         # create the layout

@@ -8,6 +8,8 @@ from kineval import (
     TraverseJointUp,
     TraverseJointDown,
     TraverseJointAdjacent,
+    RobotConfiguration,
+    RRTInfo,
     CollapsibleWidget,
     SliderWidget,
     VariableDisplayWidget,
@@ -26,9 +28,9 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
+    QPushButton,
 )
 import numpy as np
-import pyvista as pv
 
 
 class KinevalWindowSettings:
@@ -97,6 +99,11 @@ class KinevalWindow(QMainWindow):
         self.robot: Robot = robot  # robot
         self.world: World = world  # world container
         self.settings: KinevalWindowSettings = settings  # settings
+        self.default_config: RobotConfiguration = RobotConfiguration(
+            robot
+        )  # default configuration of robot
+        self.rrt: RRTInfo = None  # RRTInfo
+        self.rrt_stepsize: float = 0.5  # RRT step size
         self.detect_keys = {  # set of keys to detect
             Qt.Key_W,  # front
             Qt.Key_S,  # back
@@ -106,6 +113,7 @@ class KinevalWindow(QMainWindow):
             Qt.Key_E,  # turn right
             Qt.Key_U,  # apply positive control
             Qt.Key_I,  # apply negative control
+            Qt.Key_N,  # traverse path plan
         }
         self.pressed_keys = set()  # currently pressed keys
         self.previous_camera_pos: Vec3 = [0, 0, 0]  # last valid camera position
@@ -118,12 +126,10 @@ class KinevalWindow(QMainWindow):
         self.resize(960, 540)
 
         # initialize widgets
-        self.__create_plotter_widget()
-        self.__add_robot_to_plotter()
-        self.__addWorldToPlotter()
-        self.__createGUIWidget()
+        self.createPlotterWidget()
+        self.createGUIWidget()
 
-    def __create_plotter_widget(self):
+    def createPlotterWidget(self):
         """Initializes the main plotter widget for displaying the
         world and the robot."""
         # create central widget to show plotter
@@ -147,7 +153,11 @@ class KinevalWindow(QMainWindow):
         self.plotter.keyReleaseEvent = self.onKeyRelease
         self.plotter.iren.add_observer("InteractionEvent", self.onCameraMove)
 
-    def __add_robot_to_plotter(self):
+        # add actors to the plotter
+        self.__addRobotToPlotter()
+        self.__addWorldToPlotter()
+
+    def __addRobotToPlotter(self):
         """Creates and adds the robot link and joint geometries
         to the plotter widget."""
         # add robot link and collision geoms to window
@@ -216,7 +226,7 @@ class KinevalWindow(QMainWindow):
         for obstacle in self.world.obstacles:
             self.plotter.add_actor(obstacle.geom)
 
-    def __createGUIWidget(self):
+    def createGUIWidget(self):
         """Initializes a dock widget for displaying an
         interactive GUI for controlling the program."""
         # create dock widget to show gui
@@ -232,12 +242,12 @@ class KinevalWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         scroll.setMinimumWidth(288)
         self.gui.setWidget(scroll)
-        gui_layout = QVBoxLayout()
-        scroll.setLayout(gui_layout)
+        self.gui_layout = QVBoxLayout()
+        scroll.setLayout(self.gui_layout)
 
         # show information (robot and world)
         info_display = CollapsibleWidget("Info", expanded=True)
-        gui_layout.addWidget(info_display)
+        self.gui_layout.addWidget(info_display)
         robot_info = info_display.addGroup("Robot", expanded=True)
         robot_info.addWidget(VariableDisplayWidget("Robot", self.robot.name))
         robot_info.addWidget(VariableDisplayWidget("Base", self.robot.base.name))
@@ -252,8 +262,20 @@ class KinevalWindow(QMainWindow):
         world_info.addWidget(VariableDisplayWidget("World", self.world.name))
 
         # display settings (link, joints, world)
+        self.__addDisplayGUI()
+
+        # rrt settings
+        self.__addRRTGUI()
+
+        # add spacing to push collapsed content to the top
+        self.gui_layout.addSpacerItem(
+            QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        )
+
+    def __addDisplayGUI(self):
+        """Creates and adds display settings to the GUI."""
         display_settings = CollapsibleWidget("Display Settings")
-        gui_layout.addWidget(display_settings)
+        self.gui_layout.addWidget(display_settings)
         link_settings = display_settings.addGroup("Links")
         joint_settings = display_settings.addGroup("Joints")
         world_settings = display_settings.addGroup("World")
@@ -311,10 +333,25 @@ class KinevalWindow(QMainWindow):
             )
             joint_settings.addWidget(select_color_slider)
 
-        # add spacing to push collapsed content to the top
-        gui_layout.addSpacerItem(
-            QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        )
+    def __addRRTGUI(self):
+        rrt_settings = CollapsibleWidget("Motion Planning")
+        self.gui_layout.addWidget(rrt_settings)
+
+        # add button for starting planner
+        start_button = QPushButton("Run Motion Planner")
+        start_button.clicked.connect(self.onRunRRT)
+        rrt_settings.addWidget(start_button)
+
+        # add step size slider
+        step_size_slider = SliderWidget("Step Size", self.rrt_stepsize, 0.1, 1.0)
+        step_size_slider.setCallback(self.onUpdateRRTStepSize)
+        rrt_settings.addWidget(step_size_slider)
+
+        # show planner info
+        self.rrt_status_widget = VariableDisplayWidget("Planner Status", "Waiting")
+        rrt_settings.addWidget(self.rrt_status_widget)
+        self.rrt_steps_widget = VariableDisplayWidget("Iterations", "0")
+        rrt_settings.addWidget(self.rrt_steps_widget)
 
     def update(self):
         """Does all the visual updates of the window."""
@@ -334,6 +371,11 @@ class KinevalWindow(QMainWindow):
             # update joint and axis transformation
             joint.geom.user_matrix = joint.transform
             joint.axis_geom.user_matrix = joint.transform
+
+        # update rrt widgets
+        if self.rrt is not None:
+            self.rrt_status_widget.setValue(self.rrt.status.name)
+            self.rrt_steps_widget.setValue(str(self.rrt.steps))
 
         # update plotter widget
         self.plotter.update()
@@ -371,6 +413,8 @@ class KinevalWindow(QMainWindow):
                 self.robot, self.settings.joint_color, self.settings.selection_color
             )
             self.gui.selection_widget.setValue(self.robot.selected.name)
+        elif key == Qt.Key_M:  # run RRT:
+            self.onRunRRT()
 
     def onKeyRelease(self, event: QKeyEvent):
         """Removes key from `pressed_key` if it has been released.
@@ -515,3 +559,25 @@ class KinevalWindow(QMainWindow):
                     0.5 * self.settings.joint_size,
                 )
             joint.geom.mapper = joint_geom.mapper
+
+    def onRunRRT(self):
+        """Clears the markers and resets the RRTInfo."""
+        self.world.clearMarkers(self.plotter)
+        self.rrt = RRTInfo(
+            self.robot,
+            self.world,
+            self.plotter,
+            self.rrt_stepsize,
+            RobotConfiguration(self.robot),
+            self.default_config,
+        )
+
+    def onUpdateRRTStepSize(self, value: float):
+        """Sets RRT step size.
+
+        Args:
+            value (float): Step size of RRT.
+        """
+        if self.rrt:
+            self.rrt_stepsize = value
+            self.rrt.stepsize = value

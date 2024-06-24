@@ -4,16 +4,16 @@ from kineval import (
     MoveRobot,
     TurnRobot,
     ApplyControl,
+    TraversePathPlan,
+    InitRobot,
+    TraverseRobotFK,
+    IsCollision,
+    StepRRT,
     KinevalWindow,
     KinevalWindowSettings,
 )
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QApplication
-
-# student functions
-from kineval.init_robot import InitRobot
-from kineval.forward_kinematics import TraverseRobotFK
-from kineval.collision import IsCollision
 
 
 class KinevalSettings:
@@ -22,10 +22,10 @@ class KinevalSettings:
     def __init__(
         self,
         window_settings: KinevalWindowSettings = None,
-        tick_rate: float = 60,
-        movement_speed: float = 5,
-        turn_speed: float = 3,
-        control_speed: float = 1,
+        tick_rate: int = 60,
+        movement_speed: float = 5.0,
+        turn_speed: float = 3.0,
+        control_speed: float = 1.0,
     ) -> None:
         self.window_settings: KinevalWindowSettings = (
             KinevalWindowSettings() if window_settings is None else window_settings
@@ -63,6 +63,7 @@ class Kineval:
             self.world,
             self.settings.window_settings,
         )  # render window manager
+        self.target = 0  # target node index in path plan motion
 
         # add update callback
         tick_millis = 1000 // self.settings.tick_rate  # ms between each tick
@@ -106,7 +107,12 @@ class Kineval:
         elif Qt.Key_I in self.window.pressed_keys:
             ApplyControl(self.robot, 1, control_rate)
 
-        # TODO: run student functions
+        # run path plan
+        if Qt.Key_N in self.window.pressed_keys:
+            self.target = TraversePathPlan(self.window.rrt, self.target, movement_rate)
+
+        # run student functions
+        StepRRT(self.window.rrt)
         TraverseRobotFK(self.robot)
         IsCollision(self.robot, self.world)
 
