@@ -13,7 +13,7 @@ from .controls import (
     TraverseJointDown,
     TraverseJointAdjacent,
     ApplyControl,
-    RunPathPlan,
+    TraversePathPlan,
 )
 from .gui import CollapsibleWidget, SliderWidget, VariableDisplayWidget
 from .renderer import KinevalWindow, KinevalWindowSettings

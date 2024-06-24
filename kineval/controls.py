@@ -110,7 +110,17 @@ def ApplyControl(robot: Robot, direction: float, speed: float):
         robot.selected.theta += direction * speed
 
 
-def RunPathPlan(rrt: RRTInfo, target_i: int, speed: float) -> int:
+def TraversePathPlan(rrt: RRTInfo, target_i: int, speed: float) -> int:
+    """Moves the robot along the generated path plan.
+
+    Args:
+        rrt (RRTInfo): RRTInfo with path information.
+        target_i (int): Index of target node to move towards.
+        speed (float): Speed to traverse along the path.
+
+    Returns:
+        int: The index of the next target node.
+    """
     # must run rrt pathplanning first
     if rrt is None or len(rrt.path) <= 2:
         return 0

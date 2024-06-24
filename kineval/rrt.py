@@ -31,12 +31,14 @@ class RRTInfo:
         robot: Robot,
         world: World,
         plotter: QtInteractor,
+        stepsize: float,
         start: RobotConfiguration,
         goal: RobotConfiguration,
     ):
         self.robot: Robot = robot
         self.world: World = world
         self.plotter: QtInteractor = plotter
+        self.stepsize: float = stepsize
         self.treeA: list[RRTNode] = []
         self.treeB: list[RRTNode] = []
         self.path: list[RRTNode] = []
@@ -44,7 +46,6 @@ class RRTInfo:
         self.goal: RRTNode = self.addVertex(goal, "B")
         self.steps: int = 0
         self.status: RRTInfo.RRTState = RRTInfo.RRTState.ITERATING
-        self.stepsize: float = 0.5
 
     def addVertex(
         self, configuration: RobotConfiguration, tree: Literal["A", "B"]

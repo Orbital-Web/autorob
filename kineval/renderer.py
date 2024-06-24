@@ -103,6 +103,7 @@ class KinevalWindow(QMainWindow):
             robot
         )  # default configuration of robot
         self.rrt: RRTInfo = None  # RRTInfo
+        self.rrt_stepsize: float = 0.5  # RRT step size
         self.detect_keys = {  # set of keys to detect
             Qt.Key_W,  # front
             Qt.Key_S,  # back
@@ -112,7 +113,7 @@ class KinevalWindow(QMainWindow):
             Qt.Key_E,  # turn right
             Qt.Key_U,  # apply positive control
             Qt.Key_I,  # apply negative control
-            Qt.Key_N,  # run path plan
+            Qt.Key_N,  # traverse path plan
         }
         self.pressed_keys = set()  # currently pressed keys
         self.previous_camera_pos: Vec3 = [0, 0, 0]  # last valid camera position
@@ -341,6 +342,11 @@ class KinevalWindow(QMainWindow):
         start_button.clicked.connect(self.onRunRRT)
         rrt_settings.addWidget(start_button)
 
+        # add step size slider
+        step_size_slider = SliderWidget("Step Size", self.rrt_stepsize, 0.1, 1.0)
+        step_size_slider.setCallback(self.onUpdateRRTStepSize)
+        rrt_settings.addWidget(step_size_slider)
+
         # show planner info
         self.rrt_status_widget = VariableDisplayWidget("Planner Status", "Waiting")
         rrt_settings.addWidget(self.rrt_status_widget)
@@ -561,6 +567,17 @@ class KinevalWindow(QMainWindow):
             self.robot,
             self.world,
             self.plotter,
+            self.rrt_stepsize,
             RobotConfiguration(self.robot),
             self.default_config,
         )
+
+    def onUpdateRRTStepSize(self, value: float):
+        """Sets RRT step size.
+
+        Args:
+            value (float): Step size of RRT.
+        """
+        if self.rrt:
+            self.rrt_stepsize = value
+            self.rrt.stepsize = value

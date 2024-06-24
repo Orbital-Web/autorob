@@ -4,7 +4,7 @@ from kineval import (
     MoveRobot,
     TurnRobot,
     ApplyControl,
-    RunPathPlan,
+    TraversePathPlan,
     InitRobot,
     TraverseRobotFK,
     IsCollision,
@@ -109,7 +109,7 @@ class Kineval:
 
         # run path plan
         if Qt.Key_N in self.window.pressed_keys:
-            self.target = RunPathPlan(self.window.rrt, self.target, movement_rate)
+            self.target = TraversePathPlan(self.window.rrt, self.target, movement_rate)
 
         # run student functions
         StepRRT(self.window.rrt)
