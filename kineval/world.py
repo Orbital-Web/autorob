@@ -67,6 +67,7 @@ class World:
         marker.setColor([1.0, 1.0, 0.0])
         self.markers.append(marker)
         plotter.add_actor(marker.geom)
+        return marker
 
     def clearMarkers(self, plotter: QtInteractor):
         """Removes all markers from the scene and the world.

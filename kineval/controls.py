@@ -1,7 +1,6 @@
-from kineval import Robot, Joint, Vec3, Vec2
+from kineval import Robot, Joint, Vec3, Vec2, RobotConfiguration, RRTInfo
 from scipy.spatial.transform import Rotation as R
 import numpy as np
-from pyvista.plotting.camera import Camera
 
 
 def MoveRobot(robot: Robot, direction: Vec2, speed: float):
@@ -22,17 +21,6 @@ def MoveRobot(robot: Robot, direction: Vec2, speed: float):
     # update robot position
     dxyz = direction[0] * speed * facing + direction[1] * speed * lateral
     robot.xyz += dxyz
-
-    # update camera position
-    # camera_position = camera.position
-    # camera.SetPosition(
-    #     [
-    #         camera_position[0] + dxyz[0],
-    #         camera_position[1] + dxyz[1],
-    #         camera_position[2] + dxyz[2],
-    #     ]
-    # )
-    # camera.SetFocalPoint(robot.base.geom.GetCenter())
 
 
 def TurnRobot(robot: Robot, direction: float, speed: float):
@@ -120,3 +108,28 @@ def ApplyControl(robot: Robot, direction: float, speed: float):
     """
     if robot.selected.type != Joint.JointType.FIXED:
         robot.selected.theta += direction * speed
+
+
+def RunPathPlan(rrt: RRTInfo, target_i: int, speed: float) -> int:
+    # must run rrt pathplanning first
+    if rrt is None or len(rrt.path) <= 2:
+        return 0
+
+    # teleport to start if we reached the goal
+    if target_i >= len(rrt.path):
+        rrt.path[0].configuration.useConfiguration(rrt.robot)
+        return 1
+
+    # move towards target
+    qcurrent_vec = RobotConfiguration(rrt.robot).asVec()
+    qtarget = rrt.path[target_i].configuration
+    qtarget_vec = qtarget.asVec()
+    dist = np.linalg.norm(qcurrent_vec - qtarget_vec)
+    if dist > speed:
+        RobotConfiguration(rrt.robot).fromVec(
+            qcurrent_vec + (qtarget_vec - qcurrent_vec) * speed / dist
+        ).useConfiguration(rrt.robot)
+        return target_i
+    else:
+        qtarget.useConfiguration(rrt.robot)
+        return target_i + 1

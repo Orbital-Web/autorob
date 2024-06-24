@@ -22,7 +22,7 @@ class RobotConfiguration:
             joint.name: joint.theta for joint in robot.joints
         }  # mapping of joint name to joint theta
 
-    def fromVec(self, vector: Vec):
+    def fromVec(self, vector: Vec) -> "RobotConfiguration":
         """Initializes the RobotConfiguration from a vector.
         Index 0 and 1 is for the robot base position, while index 2 is
         for the robot base rotation. Remaining indices are used for the
@@ -37,7 +37,8 @@ class RobotConfiguration:
         self.base_position = np.array(vector[:2])
         self.base_rotation = vector[2]
         for i, joint_name in enumerate(self.joint_configs):
-            self.joint_configs[joint_name] = vector[i + 2]
+            self.joint_configs[joint_name] = vector[i + 3]
+        return self
 
     def asVec(self) -> Vec:
         """Returns the vector representation of the RobotConfiguration.
@@ -52,6 +53,25 @@ class RobotConfiguration:
         for joint_theta in self.joint_configs.values():
             vector.append(joint_theta)
         return np.array(vector, float)
+
+    def useConfiguration(self, robot: Robot):
+        """Uses the configuration to set the pose of the robot.
+
+        Args:
+            robot (Robot): Robot to set configuration.
+        """
+        # check compatibility
+        for joint in robot.joints:
+            if joint.name not in self.joint_configs:
+                raise ValueError(
+                    "This configuration is incompatible with the given robot."
+                )
+
+        # set configuration
+        robot.xyz[:2] = self.base_position
+        robot.rpy[2] = self.base_rotation
+        for joint in robot.joints:
+            joint.theta = self.joint_configs[joint.name]
 
 
 def IsCollision(robot: Robot, world: World) -> bool:

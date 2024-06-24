@@ -8,6 +8,8 @@ from kineval import (
     TraverseJointUp,
     TraverseJointDown,
     TraverseJointAdjacent,
+    RobotConfiguration,
+    RRTInfo,
     CollapsibleWidget,
     SliderWidget,
     VariableDisplayWidget,
@@ -26,9 +28,9 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QSpacerItem,
     QSizePolicy,
+    QPushButton,
 )
 import numpy as np
-import pyvista as pv
 
 
 class KinevalWindowSettings:
@@ -97,6 +99,10 @@ class KinevalWindow(QMainWindow):
         self.robot: Robot = robot  # robot
         self.world: World = world  # world container
         self.settings: KinevalWindowSettings = settings  # settings
+        self.default_config: RobotConfiguration = RobotConfiguration(
+            robot
+        )  # default configuration of robot
+        self.rrt: RRTInfo = None  # RRTInfo
         self.detect_keys = {  # set of keys to detect
             Qt.Key_W,  # front
             Qt.Key_S,  # back
@@ -106,6 +112,7 @@ class KinevalWindow(QMainWindow):
             Qt.Key_E,  # turn right
             Qt.Key_U,  # apply positive control
             Qt.Key_I,  # apply negative control
+            Qt.Key_N,  # run path plan
         }
         self.pressed_keys = set()  # currently pressed keys
         self.previous_camera_pos: Vec3 = [0, 0, 0]  # last valid camera position
@@ -256,6 +263,9 @@ class KinevalWindow(QMainWindow):
         # display settings (link, joints, world)
         self.__addDisplayGUI()
 
+        # rrt settings
+        self.__addRRTGUI()
+
         # add spacing to push collapsed content to the top
         self.gui_layout.addSpacerItem(
             QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -322,6 +332,21 @@ class KinevalWindow(QMainWindow):
             )
             joint_settings.addWidget(select_color_slider)
 
+    def __addRRTGUI(self):
+        rrt_settings = CollapsibleWidget("Motion Planning")
+        self.gui_layout.addWidget(rrt_settings)
+
+        # add button for starting planner
+        start_button = QPushButton("Run Motion Planner")
+        start_button.clicked.connect(self.onRunRRT)
+        rrt_settings.addWidget(start_button)
+
+        # show planner info
+        self.rrt_status_widget = VariableDisplayWidget("Planner Status", "Waiting")
+        rrt_settings.addWidget(self.rrt_status_widget)
+        self.rrt_steps_widget = VariableDisplayWidget("Iterations", "0")
+        rrt_settings.addWidget(self.rrt_steps_widget)
+
     def update(self):
         """Does all the visual updates of the window."""
         # update link visuals
@@ -340,6 +365,11 @@ class KinevalWindow(QMainWindow):
             # update joint and axis transformation
             joint.geom.user_matrix = joint.transform
             joint.axis_geom.user_matrix = joint.transform
+
+        # update rrt widgets
+        if self.rrt is not None:
+            self.rrt_status_widget.setValue(self.rrt.status.name)
+            self.rrt_steps_widget.setValue(str(self.rrt.steps))
 
         # update plotter widget
         self.plotter.update()
@@ -378,7 +408,7 @@ class KinevalWindow(QMainWindow):
             )
             self.gui.selection_widget.setValue(self.robot.selected.name)
         elif key == Qt.Key_M:  # run RRT:
-            pass
+            self.onRunRRT()
 
     def onKeyRelease(self, event: QKeyEvent):
         """Removes key from `pressed_key` if it has been released.
@@ -523,3 +553,14 @@ class KinevalWindow(QMainWindow):
                     0.5 * self.settings.joint_size,
                 )
             joint.geom.mapper = joint_geom.mapper
+
+    def onRunRRT(self):
+        """Clears the markers and resets the RRTInfo."""
+        self.world.clearMarkers(self.plotter)
+        self.rrt = RRTInfo(
+            self.robot,
+            self.world,
+            self.plotter,
+            RobotConfiguration(self.robot),
+            self.default_config,
+        )

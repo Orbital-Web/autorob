@@ -4,13 +4,11 @@ from kineval import (
     MoveRobot,
     TurnRobot,
     ApplyControl,
-    InitRobot,  # FK
-    TraverseRobotFK,  # FK, Quaternion
-    IsCollision,  # RRT
-    IsPoseCollison,  # RRT
-    RRTInfo,  # RRT
-    ResetRRT,  # RRT
-    StepRRT,  # RRT
+    RunPathPlan,
+    InitRobot,
+    TraverseRobotFK,
+    IsCollision,
+    StepRRT,
     KinevalWindow,
     KinevalWindowSettings,
 )
@@ -28,7 +26,6 @@ class KinevalSettings:
         movement_speed: float = 5.0,
         turn_speed: float = 3.0,
         control_speed: float = 1.0,
-        enable_rrt: bool = False,
     ) -> None:
         self.window_settings: KinevalWindowSettings = (
             KinevalWindowSettings() if window_settings is None else window_settings
@@ -37,7 +34,6 @@ class KinevalSettings:
         self.movement_speed: float = movement_speed  # robot movement speed in m/s
         self.turn_speed: float = turn_speed  # robot turn speed in rad/s
         self.control_speed: float = control_speed  # robot control speed in rad or m/s
-        self.enable_rrt: bool = enable_rrt  # whether rrt is enabled
 
 
 class Kineval:
@@ -67,6 +63,7 @@ class Kineval:
             self.world,
             self.settings.window_settings,
         )  # render window manager
+        self.target = 0  # target node index in path plan motion
 
         # add update callback
         tick_millis = 1000 // self.settings.tick_rate  # ms between each tick
@@ -110,9 +107,12 @@ class Kineval:
         elif Qt.Key_I in self.window.pressed_keys:
             ApplyControl(self.robot, 1, control_rate)
 
-        # TODO: run student functions
-        if self.settings.enable_rrt:
-            pass
+        # run path plan
+        if Qt.Key_N in self.window.pressed_keys:
+            self.target = RunPathPlan(self.window.rrt, self.target, movement_rate)
+
+        # run student functions
+        StepRRT(self.window.rrt)
         TraverseRobotFK(self.robot)
         IsCollision(self.robot, self.world)
 
