@@ -4,10 +4,8 @@ import numpy as np
 
 
 def MoveRobot(robot: Robot, direction: Vec2, speed: float):
-    """Moves the robot in the specified direction.
-    Increments `robot.xyz` by some vector v with magnitude
-    `speed`, depending on `robot.facing` and `direction`.
-    Also moves the camera.
+    """Moves the robot in the specified direction. Increments `robot.xyz` by some vector
+    v with magnitude `speed`, depending on `robot.facing` and `direction`.
 
     Args:
         robot (Robot): The robot to move.
@@ -40,8 +38,7 @@ def TurnRobot(robot: Robot, direction: float, speed: float):
 
 
 def TraverseJointUp(robot: Robot, color: Vec3, selected_color: Vec3):
-    """Selects the next joint down the kinematic
-    hierarchy.
+    """Selects the next joint down the kinematic hierarchy.
 
     Args:
         robot (Robot): The robot to traverse.
@@ -56,8 +53,7 @@ def TraverseJointUp(robot: Robot, color: Vec3, selected_color: Vec3):
 
 
 def TraverseJointDown(robot: Robot, color: Vec3, selected_color: Vec3):
-    """Selects the previous joint down the kinematic
-    hierarchy.
+    """Selects the previous joint down the kinematic hierarchy.
 
     Args:
         robot (Robot): The robot to traverse.
@@ -96,10 +92,9 @@ def TraverseJointAdjacent(robot: Robot, color: Vec3, selected_color: Vec3):
 
 
 def ApplyControl(robot: Robot, direction: float, speed: float):
-    """Modifies the robot's selected joint's theta in the
-    specified direction. Turns the robot's selected joint
-    if the joint is continuous or revolute. Extends or
-    retracts the joint if the joint is prismatic.
+    """Modifies the robot's selected joint's theta in the specified direction. Turns the
+    robot's selected joint if the joint is continuous or revolute. Extends or retracts
+    the joint if the joint is prismatic.
 
     Args:
         robot (Robot): The robot to control.

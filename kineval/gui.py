@@ -63,8 +63,8 @@ class SliderWidget(QWidget):
         max_val: float = 1,
         update_callback: Callable = None,
     ):
-        """If `update_callback` is specified, it will be called along with
-        `self.val` as the argument whenever the slider variable is updated.
+        """If `update_callback` is specified, it will be called along with `self.val` as
+        the argument whenever the slider variable is updated.
 
         Args:
             label (str): The label for the slider.
@@ -134,9 +134,8 @@ class SliderWidget(QWidget):
             self.update_callback(self.val)
 
     def onUpdateSlider(self):
-        """Updates the slider when a value is entered.
-        Only updates if the value is a valid number within
-        the range specified during construction."""
+        """Updates the slider when a value is entered. Only updates if the value is a
+        valid number within the range specified during construction."""
         display_val = self.val_range * (self.slider.value() / 100) + self.min_val
         # set value if it's a valid number
         try:
@@ -155,8 +154,7 @@ class SliderWidget(QWidget):
 
 
 class CollapsibleWidget(QGroupBox):
-    """A widget who's content can be collapsed or expanded
-    by clicking on the label."""
+    """A widget who's content can be collapsed or expanded by clicking on the label."""
 
     def __init__(self, label: str, expanded: bool = False):
         """Initializes the collasible widget.
@@ -206,8 +204,7 @@ class CollapsibleWidget(QGroupBox):
         self.content.addWidget(widget)
 
     def addGroup(self, label: str, **kwargs) -> "CollapsibleWidget":
-        """Creates a new CollapsibleWidget as a child of the
-        current widget.
+        """Creates a new CollapsibleWidget as a child of the current widget.
 
         Args:
             label (str): Group name of child CollapsibleWidget.
@@ -220,8 +217,8 @@ class CollapsibleWidget(QGroupBox):
         return group
 
     def onToggle(self, checked: bool):
-        """Updates the arrow to either facing down or right
-        depending on the state of the collapsible widget.
+        """Updates the arrow to either facing down or right depending on the state of
+        the collapsible widget.
 
         Args:
             checked (bool): Whether the content is expanded or not.

@@ -67,7 +67,7 @@ class Joint:
 
 
 class Robot:
-    """A bare-minimum class for representing a robot."""
+    """A class for representing a robot."""
 
     def __init__(
         self,

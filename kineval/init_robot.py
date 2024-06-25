@@ -2,8 +2,7 @@ from kineval import Robot
 
 
 def InitRobot(robot: Robot):
-    """Initializes the parent and children structures
-    for each joint in the robot.
+    """Initializes the parent and children structures for each joint in the robot.
 
     Args:
         robot (Robot): The robot the initialize.

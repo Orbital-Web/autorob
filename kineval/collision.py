@@ -23,10 +23,9 @@ class RobotConfiguration:
         }  # mapping of joint name to joint theta
 
     def fromVec(self, vector: Vec) -> "RobotConfiguration":
-        """Initializes the RobotConfiguration from a vector.
-        Index 0 and 1 is for the robot base position, while index 2 is
-        for the robot base rotation. Remaining indices are used for the
-        joint configurations, in the order of robot.joints.
+        """Initializes the RobotConfiguration from a vector. Index 0 and 1 is for the
+        robot base position, while index 2 is for the robot base rotation. Remaining
+        indices are used for the joint configurations, in the order of robot.joints.
 
         Args:
             vector (Vec): Input vector to initialize with.
@@ -41,10 +40,10 @@ class RobotConfiguration:
         return self
 
     def asVec(self) -> Vec:
-        """Returns the vector representation of the RobotConfiguration.
-        Index 0 and 1 is for the robot base position, while index 2 is
-        for the robot base rotation. Remaining indices are used for the
-        joint configurations, in the order of robot.joints.
+        """Returns the vector representation of the RobotConfiguration. Index 0 and 1 is
+        for the robot base position, while index 2 is for the robot base rotation.
+        Remaining indices are used for the joint configurations, in the order of
+        robot.joints.
 
         Returns:
             Vec: The vector representation of the configuration.
@@ -92,9 +91,8 @@ def IsCollision(robot: Robot, world: World) -> bool:
 def IsPoseCollison(
     robot: Robot, configuration: RobotConfiguration, world: World
 ) -> bool:
-    """Returns whether the robot in the given configuration is
-    in collision.
-    May call `CollisionLinkFK` and `CollisionJointFK`.
+    """Returns whether the robot in the given configuration is in collision. May call
+    `CollisionLinkFK` and `CollisionJointFK`.
 
     Args:
         robot (Robot): Robot to check collision for.
@@ -131,8 +129,8 @@ def IsPoseCollison(
 def CollisionJointFK(
     mstack: Mat4, joint: Joint, configuration: RobotConfiguration, world: World
 ) -> bool:
-    """Checks whether the joint's descendants are in collision.
-    Updates mstack and calls `CollisionLinkFK` for the child link.
+    """Checks whether the joint's descendants are in collision. Updates mstack and calls
+    `CollisionLinkFK` for the child link.
 
     Args:
         mstack (Mat4): Current transformation matrix on stack.
@@ -168,8 +166,8 @@ def CollisionJointFK(
 def CollisionLinkFK(
     mstack: Mat4, link: Link, configuration: RobotConfiguration, world: World
 ) -> bool:
-    """Checks whether the link or its descendants are in collision.
-    Calls `CollisionJointFK` for the children joints.
+    """Checks whether the link or its descendants are in collision. Calls
+    `CollisionJointFK` for the children joints.
 
     Args:
         mstack (Mat4): Current transformation matrix on stack.

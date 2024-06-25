@@ -50,8 +50,7 @@ class RRTInfo:
     def addVertex(
         self, configuration: RobotConfiguration, tree: Literal["A", "B"]
     ) -> RRTNode:
-        """Adds a new node to the RRT tree. Additionally adds a new marker
-        to the world.
+        """Adds a new node to the RRT tree. Additionally adds a new marker to the world.
 
         Args:
             configuration (RobotConfiguration): The configuration of the new node.

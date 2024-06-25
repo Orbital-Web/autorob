@@ -8,9 +8,8 @@ from scipy.spatial.transform import Rotation as R
 
 
 def TraverseRobotFK(robot: Robot):
-    """Traverses the robot kinematic chain and sets the
-    `transform` property of the robot and the joints.
-    May call `TraverseLinkFK` and `TraverseJointFK`.
+    """Traverses the robot kinematic chain and sets the `transform` property of the
+    robot and the joints. May call `TraverseLinkFK` and `TraverseJointFK`.
 
     Args:
         robot (Robot): The robot to do forward kinematics on.
@@ -42,8 +41,7 @@ def TraverseLinkFK(mstack: Mat4, link: Link):
 
 
 def TraverseJointFK(mstack: Mat4, joint: Joint):
-    """Helper function to traverse a joint during FK.
-    May call `ApplyJointLimits`.
+    """Helper function to traverse a joint during FK. May call `ApplyJointLimits`.
 
     Args:
         mstack (Mat4D): Current transformation matrix on stack.
@@ -73,10 +71,9 @@ def TraverseJointFK(mstack: Mat4, joint: Joint):
 
 
 def ApplyJointLimits(joint: Joint):
-    """Ensures the joint theta does not exceed it joint
-    limits. If `joint.limits` is None, the joint does not
-    have a joint limit. Otherwise, ensure `joint.theta`
-    is within `joint.limits[0]` and `joint.limits[1]`.
+    """Ensures the joint theta does not exceed it joint limits. If `joint.limits` is
+    None, the joint does not have a joint limit. Otherwise, ensure `joint.theta` is
+    within `joint.limits[0]` and `joint.limits[1]`.
 
     Args:
         joint (Joint): The joint to apply joint limits.
