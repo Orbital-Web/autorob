@@ -107,7 +107,13 @@ class Kineval:
 
         # run path plan
         if Qt.Key_N in self.window.pressed_keys:
-            self.target = TraversePathPlan(self.window.rrt, self.target, movement_rate)
+            self.target = TraversePathPlan(
+                self.window.rrt, self.target, 1, movement_rate
+            )
+        elif Qt.Key_B in self.window.pressed_keys:
+            self.target = TraversePathPlan(
+                self.window.rrt, self.target, -1, movement_rate
+            )
 
         # run student functions
         StepRRT(self.window.rrt)

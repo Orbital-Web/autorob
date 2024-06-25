@@ -113,7 +113,8 @@ class KinevalWindow(QMainWindow):
             Qt.Key_E,  # turn right
             Qt.Key_U,  # apply positive control
             Qt.Key_I,  # apply negative control
-            Qt.Key_N,  # traverse path plan
+            Qt.Key_N,  # traverse path plan forwards
+            Qt.Key_B,  # traverse path plan backwards
         }
         self.pressed_keys = set()  # currently pressed keys
         self.previous_camera_pos: Vec3 = [0, 0, 0]  # last valid camera position
