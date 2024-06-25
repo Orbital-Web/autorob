@@ -179,16 +179,21 @@ def CollisionLinkFK(
         bool: Whether the link or its descendants are in collision.
     """
     # NOTE: This function is already written for you
+    # calculate affine inverse
+    inverse_transform = np.identity(4)
+    R_T = np.transpose(mstack[:3, :3])
+    inverse_transform[:3, :3] = R_T
+    inverse_transform[:3, 3] = -R_T @ mstack[:3, 3]
 
     # check collision of this link
-    inverse_transform = np.linalg.inv(mstack)
     for obstacle in world.obstacles:
         # transform obstacle origin to link frame
         origin_local = (inverse_transform @ obstacle.origin_homogeneous)[:3]
         # find closest point on box to obstacle
         closest = np.clip(origin_local, link.bbox[::2], link.bbox[1::2])
         # check if distance is less than radius (in collision)
-        if np.linalg.norm(closest - origin_local) <= obstacle.radius:
+        difference = closest - origin_local
+        if np.dot(difference, difference) <= obstacle.radius * obstacle.radius:
             link.bbox_geom.SetVisibility(True)
             return True
         # not in collision
