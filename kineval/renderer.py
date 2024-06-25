@@ -281,7 +281,7 @@ class KinevalWindow(QMainWindow):
         joint_settings = display_settings.addGroup("Joints")
         world_settings = display_settings.addGroup("World")
 
-        # add toggle for link, joint, and terrain display
+        # add toggle for link, joint, and axis display
         link_toggle = QCheckBox("Show Links", checked=True)
         link_toggle.toggled.connect(lambda: self.onUpdateVisibilityLink(link_toggle))
         link_settings.addWidget(link_toggle)
@@ -292,11 +292,18 @@ class KinevalWindow(QMainWindow):
         self.onUpdateVisibilityAxis(axis_toggle)
         axis_toggle.toggled.connect(lambda: self.onUpdateVisibilityAxis(axis_toggle))
         joint_settings.addWidget(axis_toggle)
+
+        # add toggle for terrain and obstacle display
         terrain_toggle = QCheckBox("Show Terrain", checked=True)
         terrain_toggle.toggled.connect(
             lambda: self.onUpdateVisibilityTerrain(terrain_toggle)
         )
         world_settings.addWidget(terrain_toggle)
+        obstacle_toggle = QCheckBox("Show Obstacles", checked=True)
+        obstacle_toggle.toggled.connect(
+            lambda: self.onUpdateVisibilityObstacle(obstacle_toggle)
+        )
+        world_settings.addWidget(obstacle_toggle)
 
         # add joint scale slider
         joint_size_slider = SliderWidget("Size", self.settings.joint_size)
@@ -530,6 +537,15 @@ class KinevalWindow(QMainWindow):
             button (QCheckBox): Button used for toggle.
         """
         self.world.terrain.SetVisibility(button.isChecked())
+
+    def onUpdateVisibilityObstacle(self, button: QCheckBox):
+        """Sets obstacle visibility.
+
+        Args:
+            button (QCheckBox): Button used for toggle.
+        """
+        for obstacle in self.world.obstacles:
+            obstacle.geom.SetVisibility(button.isChecked())
 
     def onUpdateSizeJoint(self, value: float):
         """Updates `self.settings.joint_size` and updates the joint geometry.
