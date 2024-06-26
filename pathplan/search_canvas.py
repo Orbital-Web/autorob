@@ -105,52 +105,64 @@ def get_clicked_pos(pos):
 
     return row, col
 
-def main(algorithm,map):
-    #init search algorithm
+def update_ui(screen, status, path_length, visited_count, queue_size):
+    if not hasattr(update_ui, 'last_status'):
+        update_ui.last_status = ""
+        update_ui.last_path_length = 0
+        update_ui.last_visited_count = 0
+        update_ui.last_queue_size = 0
+    
+    if (status == update_ui.last_status and path_length == update_ui.last_path_length and 
+        visited_count == update_ui.last_visited_count and queue_size == update_ui.last_queue_size):
+        return
+
+    update_ui.last_status = status
+    update_ui.last_path_length = path_length
+    update_ui.last_visited_count = visited_count
+    update_ui.last_queue_size = queue_size
+
+    font_size = 30
+    font = pygame.font.Font(None, font_size)
+    screen.fill(DEFAULT_NODE_COLOR, (0, WIDTH, WIDTH, 160))  # clear the UI area
+    status_str = f"Status: {status}"
+    path_length_str = f"Path Length: {path_length}"
+    visited_count_str = f"Visited Nodes: {visited_count}"
+    queue_size_str = f"Queue Size: {queue_size}"
+
+    display_text(screen, status_str, (10, WIDTH + 20))
+    display_text(screen, path_length_str, (10, WIDTH + 55))
+    display_text(screen, visited_count_str, (10, WIDTH + 90))
+    display_text(screen, queue_size_str, (10, WIDTH + 125))
+
+    pygame.display.update((0, WIDTH, WIDTH, 160))  # only update the UI area
+
+def main(algorithm, map_type):
     plan = get_algorithm(algorithm)
     if not plan:
         print("No valid planning algorithm found. Exiting.")
-        return 
-    
+        return
+
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH, WIDTH))
+    screen = pygame.display.set_mode((WIDTH, WIDTH + 160))
 
     running = True
     usedPreviously = False
 
-    grid, start, end = get_map(map)
-    if (not grid) or (not start) or (not end):
+    grid, start, end = get_map(map_type)
+    if not grid or not start or not end:
         print("No valid Canvas found. Exiting.")
-        return 
-    
-    #status tracking variables 
+        return
+
     status = "Idle"
     path_length = 0
     visited_count = 0
     queue_size = 0
-    def update_ui(new_status, new_path_length, new_visited_count, new_queue_size):
-        nonlocal status, path_length, visited_count, queue_size
-        # status, path_length, visited_count, queue_size = new_status, new_path_length, new_visited_count, new_queue_size
-        # font_size = 30
-        # font = pygame.font.Font(None, font_size)
-        # values = [status, str(path_length), str(visited_count), str(queue_size)]
-        # positions = [(120, WIDTH + 20), (120, WIDTH + 55), (120, WIDTH + 90), (120, WIDTH + 125)]
-        # for value, position in zip(values, positions):
-        #     clear_rect = pygame.Rect(position[0], position[1], 200, font_size)  # Adjust width as necessary
-        #     screen.fill((0, 0, 0), clear_rect)  
-        #     text_surface = font.render(value, True, (255, 255, 255))
-        #     screen.blit(text_surface, position)
-        # pygame.display.update()
-        # FIXME buggy update ui 
-        return
-    while(running):
+    while running:
         draw(grid)
-        # status update
-        update_ui(status, path_length, visited_count, queue_size)
+        update_ui(screen, status, path_length, visited_count, queue_size)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            # select start point ,end point and barrier
             if pygame.mouse.get_pressed()[0]:
                 pos = pygame.mouse.get_pos()
                 row, col = get_clicked_pos(pos)
@@ -162,7 +174,7 @@ def main(algorithm,map):
                 elif not end and node != start and node.get_color() != BARRIER_COLOR:
                     node.set_color(END_COLOR)
                     end = node
-                elif node != end and node != start :
+                elif node != end and node != start:
                     node.set_color(BARRIER_COLOR)
             elif pygame.mouse.get_pressed()[2]:
                 pos = pygame.mouse.get_pos()
@@ -177,7 +189,6 @@ def main(algorithm,map):
                     end = None
 
             elif event.type == pygame.KEYDOWN:
-                #use space to start your planning algorithm
                 if event.key == pygame.K_SPACE and start and end:
                     if usedPreviously:
                         reset(grid)
@@ -188,38 +199,34 @@ def main(algorithm,map):
                     for row in grid:
                         for node in row:
                             node.update_neighbors(grid)
-                    result = plan(lambda : draw(grid),update_ui, grid, start, end)
+                    result = plan(lambda: draw(grid), lambda s, pl, vc, qs: update_ui(screen, s, pl, vc, qs), grid, start, end)
+                    update_ui(screen,result[0],result[1],result[2],result[3])
                     usedPreviously = True
-                    status, path_length,visited_count,queue_size = result[0], result[1],result[2],result[3]
-                #use C to clean the canvas(rerun algorithm)
+                    status, path_length, visited_count, queue_size = result
                 elif event.key == pygame.K_c:
                     usedPreviously = False
                     end = None
-                    reset(grid, keep_start = True)
-                    grid, start, end = get_map(map)
+                    reset(grid, keep_start=True)
+                    grid, start, end = get_map(map_type)
                     status = "Canvas Reset"
                     visited_count = 0
                     queue_size = 0
                     path_length = 0
-                #use D to clean only all canvas (make own canvas)
                 elif event.key == pygame.K_d:
                     usedPreviously = False
                     start = None
                     end = None
-                    # clean the canvas including start, end and barriers
-                    reset(grid,all = True)
+                    reset(grid, all=True)
                     status = "Create your own map"
                     visited_count = 0
                     queue_size = 0
                     path_length = 0
-                # TODO
-                # use S to save your map
                 elif event.key == pygame.K_s:
                     save_map(grid)
                     print("Map saved as map.json")
-                    
-    pygame.quit()          
+
+    pygame.quit()
 
 if __name__ == "__main__":
     args = get_args()
-    main(args.algorithm,args.map)
+    main(args.algorithm, args.map)

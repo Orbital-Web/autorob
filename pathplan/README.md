@@ -1,7 +1,6 @@
 # requirement
    ```
    pip install pygame
-   pip install pyqt5
    ```
 
    
