@@ -1,6 +1,18 @@
 # requirement
    ```
    pip install pygame
+   pip install pyqt5
+   ```
+
+   
+# activate environment
+For Linux/macOS:
+   ```
+   source .venv/bin/activate
+   ```
+For Windows:
+   ```
+   .venv\Scripts\activate
    ```
 # reference 
 refer to https://github.com/VitikaSoni/a-star-algorithm-visualizer

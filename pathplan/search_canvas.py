@@ -1,7 +1,7 @@
-from infrastructure import GRID_COLOR,DEFAULT_NODE_COLOR,BARRIER_COLOR,CLOSED_COLOR ,END_COLOR,PATH_COLOR,START_COLOR,OPEN_COLOR,WIDTH,ROWCOL,draw,make_grid,display_text,setup_fixed_text
+from infrastructure import GRID_COLOR,DEFAULT_NODE_COLOR,BARRIER_COLOR,CLOSED_COLOR ,END_COLOR,PATH_COLOR,START_COLOR,OPEN_COLOR,WIDTH,ROWCOL,draw,make_grid,display_text,setup_fixed_text,Node
 import pygame
 import argparse
-
+import json
 def get_args():
     parser = argparse.ArgumentParser(description="Visualize different pathfinding algorithms on various canvas types.")
     parser.add_argument('-algorithm', type=str, choices=['astar', 'rrt'], default='astar', help='Specify the search algorithm (astar or rrt)')
@@ -29,17 +29,13 @@ def get_map(map_type):
         barrier_positions = []  
         return make_grid(default_start_pos, default_end_pos, barrier_positions)
     elif map_type == 'misc':
-        # TODO misc implement
-        return 
+        return load_map("scenes/misc.json")
     elif map_type == 'narrow1':
-        # TODO narrow1 implement
-        return
+        return load_map("scenes/narrow1.json")
     elif map_type == 'narrow2':
-        # TODO narrow2 implement
-        return 
+        return load_map("scenes/narrow2.json")
     elif map_type == 'three_section':
-        # TODO three_section implement
-        return 
+        return load_map("scenes/three_section.json")
     else:
         print("Canvas not recognized")
 
@@ -55,7 +51,51 @@ def reset(grid,all = False, keep_start = False):
             else:
                 if color == OPEN_COLOR or color == CLOSED_COLOR or color == PATH_COLOR: 
                     node.set_color(DEFAULT_NODE_COLOR)
-            
+def save_map(grid, filename='map.json'):
+    grid_data = []
+    for row in grid:
+        row_data = []
+        for node in row:
+            node_data = {
+                'color': node.get_color(),
+                'position': (node.row, node.col)
+            }
+            row_data.append(node_data)
+        grid_data.append(row_data)
+
+    map_data = {
+        'grid': grid_data,
+        'width': WIDTH,
+        'rowcol': ROWCOL
+    }
+
+    with open(filename, 'w') as f:
+        json.dump(map_data, f, indent=4)
+
+def load_map(filename):
+    with open(filename, 'r') as f:
+        map_data = json.load(f)
+    
+    grid_data = map_data['grid']
+    grid = []
+    start = None
+    end = None
+    nodeWidth = WIDTH // ROWCOL
+
+    for row_data in grid_data:
+        row = []
+        for node_data in row_data:
+            node = Node(node_data['position'][0], node_data['position'][1], nodeWidth)
+            node.set_color(tuple(node_data['color']))
+            if node.get_color() == START_COLOR:
+                start = node
+            elif node.get_color() == END_COLOR:
+                end = node
+            row.append(node)
+        grid.append(row)
+
+    return grid, start, end
+
 def get_clicked_pos(pos):
     gap = WIDTH // ROWCOL
     x,y = pos
@@ -172,9 +212,11 @@ def main(algorithm,map):
                     visited_count = 0
                     queue_size = 0
                     path_length = 0
-                # use E to change the end only
                 # TODO
                 # use S to save your map
+                elif event.key == pygame.K_s:
+                    save_map(grid)
+                    print("Map saved as map.json")
                     
     pygame.quit()          
 

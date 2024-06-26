@@ -30,7 +30,7 @@ def astar_algorithm(draw, update_ui, grid, start, end):
 
         if current == end:
             path_length = reconstruct_path(came_from, current, start, end, draw)
-            end.set_color(END_COLOR)  # Reset end color after all processing
+            end.set_color(END_COLOR)  
             return "Success", path_length, visited_count, queue_size
 
         for neighbor in current.neighbors:
@@ -44,7 +44,7 @@ def astar_algorithm(draw, update_ui, grid, start, end):
                     count += 1
                     open_set.put((f_score[neighbor], count, neighbor))
                     open_set_hash.add(neighbor)
-                    if neighbor != end:  # Avoid changing the end node's color
+                    if neighbor != end:  
                         neighbor.set_color(OPEN_COLOR)
 
         draw()
