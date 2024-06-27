@@ -54,22 +54,20 @@ class RobotConfiguration:
         return np.array(vector, float)
 
     def useConfiguration(self, robot: Robot):
-        """Uses the configuration to set the pose of the robot.
+        """Applies the configuration to the robot.
 
         Args:
             robot (Robot): Robot to set configuration.
         """
-        # check compatibility
-        for joint in robot.joints:
-            if joint.name not in self.joint_configs:
-                raise ValueError(
-                    "This configuration is incompatible with the given robot."
-                )
-
         # set configuration
         robot.xyz[:2] = self.base_position
         robot.rpy[2] = self.base_rotation
         for joint in robot.joints:
+            # check compatibility
+            if joint.name not in self.joint_configs:
+                raise ValueError(
+                    "This configuration is incompatible with the given robot."
+                )
             joint.theta = self.joint_configs[joint.name]
 
 
@@ -151,11 +149,12 @@ def CollisionJointFK(
     m[0:3, 3] = joint.xyz
 
     # apply joint configuration
+    theta = configuration.joint_configs[joint.name]
     q = np.identity(4)
     if joint.type == Joint.JointType.PRISMATIC:
-        m[0:3, 3] += joint.axis * joint.theta
+        m[0:3, 3] += joint.axis * theta
     else:
-        quat = [*(np.sin(joint.theta / 2) * joint.axis), np.cos(joint.theta / 2)]
+        quat = [*(np.sin(theta / 2) * joint.axis), np.cos(theta / 2)]
         q[0:3, 0:3] = R.from_quat(quat).as_matrix()
     m = m @ q
 

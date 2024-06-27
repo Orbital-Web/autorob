@@ -122,6 +122,7 @@ def StepRRT(info: RRTInfo):
 # TODO: YOUR CODE HERE
 # Implement other functions that you think are necessary, such as
 # ExtendRRT, ConnectRRT, GeneratePathRRT, RandomConfig, FindNearest
+# NOTE: make sure your random config accounts for joint limits
 
 
 # FIXME: remove instructor solution below
@@ -139,15 +140,16 @@ def ExtendRRT(
             qnear_vec + (qrand_vec - qnear_vec) * info.stepsize / dnear
         )
     else:
-        node_new = info.addVertex(qrand, tree)
-        info.addEdge(node_near, node_new)
-        return RRTInfo.RRTState.REACHED, qrand
+        qnew = qrand
 
     if IsPoseCollison(info.robot, qnew, info.world):
         return RRTInfo.RRTState.TRAPPED, qnew
 
     node_new = info.addVertex(qnew, tree)
     info.addEdge(node_near, node_new)
+
+    if qnew == qrand:
+        return RRTInfo.RRTState.REACHED, qrand
     return RRTInfo.RRTState.ADVANCED, qnew
 
 
@@ -189,8 +191,12 @@ def RandomConfig(info: RRTInfo) -> RobotConfiguration:
     qrand.base_position = np.random.rand(2) * [x1 - x0, y1 - y0] + [x0, y0]
     qrand.base_rotation = 2 * np.pi * np.random.rand() - np.pi
     # randomize joint rotations
-    for joint_name in qrand.joint_configs:
-        qrand.joint_configs[joint_name] = 2 * np.pi * np.random.rand() - np.pi
+    for joint in info.robot.joints:
+        if joint.limits is None:
+            qrand.joint_configs[joint.name] = 2 * np.pi * np.random.rand() - np.pi
+        else:
+            lower, upper = joint.limits
+            qrand.joint_configs[joint.name] = (upper - lower) * np.random.rand() + lower
     return qrand
 
 

@@ -57,7 +57,9 @@ class Joint:
         self.axis: Vec3 = (
             np.array([1, 0, 0], float) if axis is None else np.array(axis, float)
         )  # joint axis
-        self.limits: Vec2 | None = limits  # [min, max] of theta or None for no limits
+        self.limits: Vec2 | None = (
+            [0, 0] if type == Joint.JointType.FIXED else limits
+        )  # [min, max] of theta or None for no limits
         # dynamic configurations
         self.theta: float = 0.0  # configuration of joint
         self.transform: Mat4 = np.identity(4, float)  # homogenous transform matrix
