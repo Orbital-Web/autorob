@@ -113,7 +113,8 @@ class KinevalWindow(QMainWindow):
             Qt.Key_E,  # turn right
             Qt.Key_U,  # apply positive control
             Qt.Key_I,  # apply negative control
-            Qt.Key_N,  # traverse path plan
+            Qt.Key_N,  # traverse path plan forwards
+            Qt.Key_B,  # traverse path plan backwards
         }
         self.pressed_keys = set()  # currently pressed keys
         self.previous_camera_pos: Vec3 = [0, 0, 0]  # last valid camera position
@@ -130,8 +131,8 @@ class KinevalWindow(QMainWindow):
         self.createGUIWidget()
 
     def createPlotterWidget(self):
-        """Initializes the main plotter widget for displaying the
-        world and the robot."""
+        """Initializes the main plotter widget for displaying the world and the
+        robot."""
         # create central widget to show plotter
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -158,8 +159,8 @@ class KinevalWindow(QMainWindow):
         self.__addWorldToPlotter()
 
     def __addRobotToPlotter(self):
-        """Creates and adds the robot link and joint geometries
-        to the plotter widget."""
+        """Creates and adds the robot link and joint geometries to the plotter
+        widget."""
         # add robot link and collision geoms to window
         for link in self.robot.links:
             # link geom
@@ -216,8 +217,8 @@ class KinevalWindow(QMainWindow):
         self.plotter.camera.SetFocalPoint(center)
 
     def __addWorldToPlotter(self):
-        """Creates and adds the terrain and obstacle geometries
-        to the plotter widget."""
+        """Creates and adds the terrain and obstacle geometries to the plotter
+        widget."""
         self.plotter.add_actor(self.world.terrain)
         self.world.terrain.prop.SetColor(*self.settings.terrain_color)
         self.world.terrain.prop.SetOpacity(self.settings.terrain_opacity)
@@ -227,8 +228,8 @@ class KinevalWindow(QMainWindow):
             self.plotter.add_actor(obstacle.geom)
 
     def createGUIWidget(self):
-        """Initializes a dock widget for displaying an
-        interactive GUI for controlling the program."""
+        """Initializes a dock widget for displaying an interactive GUI for controlling
+        the program."""
         # create dock widget to show gui
         self.gui = QDockWidget("Control Panel")
         self.gui.setAllowedAreas(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea)
@@ -280,7 +281,7 @@ class KinevalWindow(QMainWindow):
         joint_settings = display_settings.addGroup("Joints")
         world_settings = display_settings.addGroup("World")
 
-        # add toggle for link, joint, and terrain display
+        # add toggle for link, joint, and axis display
         link_toggle = QCheckBox("Show Links", checked=True)
         link_toggle.toggled.connect(lambda: self.onUpdateVisibilityLink(link_toggle))
         link_settings.addWidget(link_toggle)
@@ -291,11 +292,18 @@ class KinevalWindow(QMainWindow):
         self.onUpdateVisibilityAxis(axis_toggle)
         axis_toggle.toggled.connect(lambda: self.onUpdateVisibilityAxis(axis_toggle))
         joint_settings.addWidget(axis_toggle)
+
+        # add toggle for terrain and obstacle display
         terrain_toggle = QCheckBox("Show Terrain", checked=True)
         terrain_toggle.toggled.connect(
             lambda: self.onUpdateVisibilityTerrain(terrain_toggle)
         )
         world_settings.addWidget(terrain_toggle)
+        obstacle_toggle = QCheckBox("Show Obstacles", checked=True)
+        obstacle_toggle.toggled.connect(
+            lambda: self.onUpdateVisibilityObstacle(obstacle_toggle)
+        )
+        world_settings.addWidget(obstacle_toggle)
 
         # add joint scale slider
         joint_size_slider = SliderWidget("Size", self.settings.joint_size)
@@ -334,6 +342,7 @@ class KinevalWindow(QMainWindow):
             joint_settings.addWidget(select_color_slider)
 
     def __addRRTGUI(self):
+        """Creates and adds motion planning settings to the GUI."""
         rrt_settings = CollapsibleWidget("Motion Planning")
         self.gui_layout.addWidget(rrt_settings)
 
@@ -381,10 +390,9 @@ class KinevalWindow(QMainWindow):
         self.plotter.update()
 
     def onKeyPress(self, event: QKeyEvent):
-        """Adds key to `pressed_key` if it has been pressed and is
-        in `detect_keys`. Additionally runs commands that should
-        only run once after a key press rather than while the key
-        is presssed.
+        """Adds key to `pressed_key` if it has been pressed and is in `detect_keys`.
+        Additionally runs commands that should only run once after a key press rather
+        than while the key is presssed.
 
         Args:
             event (QKeyEvent): The key pressed event object.
@@ -443,8 +451,8 @@ class KinevalWindow(QMainWindow):
         self.plotter.camera.SetViewUp(np.cross(right_dir, view_dir).tolist())
 
     def onUpdateColorLink(self, value: float, index: int):
-        """Updates `self.settings.robot_color` at index `index`,
-        and updates the link geometry colors.
+        """Updates `self.settings.robot_color` at index `index` and updates the link
+        geometry colors.
 
         Args:
             value (float): Value of slider to set to.
@@ -457,8 +465,8 @@ class KinevalWindow(QMainWindow):
             link.geom.prop.SetColor(*self.settings.robot_color)
 
     def onUpdateColorJoint(self, value: float, index: int):
-        """Updates `self.settings.joint_color` at index `index`,
-        and updates the joint geometry colors.
+        """Updates `self.settings.joint_color` at index `index` and updates the joint
+        geometry colors.
 
         Args:
             value (float): Value of slider to set to.
@@ -474,8 +482,8 @@ class KinevalWindow(QMainWindow):
         self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
 
     def onUpdateColorSelection(self, value: float, index: int):
-        """Updates `self.settings.selection_color` at index `index`,
-        and updates the selected joint's geometry color.
+        """Updates `self.settings.selection_color` at index `index` and updates the
+        selected joint's geometry color.
 
         Args:
             value (float): Value of slider to set to.
@@ -485,8 +493,8 @@ class KinevalWindow(QMainWindow):
         self.robot.selected.geom.prop.SetColor(*self.settings.selection_color)
 
     def onUpdateColorTerrain(self, value: float, index: int):
-        """Updates `self.settings.terrain_color` at index `index`,
-        and updates the terrain geometry color.
+        """Updates `self.settings.terrain_color` at index `index` and updates the
+        terrain geometry color.
 
         Args:
             value (float): Value of slider to set to.
@@ -530,9 +538,17 @@ class KinevalWindow(QMainWindow):
         """
         self.world.terrain.SetVisibility(button.isChecked())
 
+    def onUpdateVisibilityObstacle(self, button: QCheckBox):
+        """Sets obstacle visibility.
+
+        Args:
+            button (QCheckBox): Button used for toggle.
+        """
+        for obstacle in self.world.obstacles:
+            obstacle.geom.SetVisibility(button.isChecked())
+
     def onUpdateSizeJoint(self, value: float):
-        """Updates `self.settings.joint_size` and
-        updates the joint geometry.
+        """Updates `self.settings.joint_size` and updates the joint geometry.
 
         Args:
             value (float): Value of joint size.

@@ -23,10 +23,9 @@ class RobotConfiguration:
         }  # mapping of joint name to joint theta
 
     def fromVec(self, vector: Vec) -> "RobotConfiguration":
-        """Initializes the RobotConfiguration from a vector.
-        Index 0 and 1 is for the robot base position, while index 2 is
-        for the robot base rotation. Remaining indices are used for the
-        joint configurations, in the order of robot.joints.
+        """Initializes the RobotConfiguration from a vector. Index 0 and 1 is for the
+        robot base position, while index 2 is for the robot base rotation. Remaining
+        indices are used for the joint configurations, in the order of robot.joints.
 
         Args:
             vector (Vec): Input vector to initialize with.
@@ -41,10 +40,10 @@ class RobotConfiguration:
         return self
 
     def asVec(self) -> Vec:
-        """Returns the vector representation of the RobotConfiguration.
-        Index 0 and 1 is for the robot base position, while index 2 is
-        for the robot base rotation. Remaining indices are used for the
-        joint configurations, in the order of robot.joints.
+        """Returns the vector representation of the RobotConfiguration. Index 0 and 1 is
+        for the robot base position, while index 2 is for the robot base rotation.
+        Remaining indices are used for the joint configurations, in the order of
+        robot.joints.
 
         Returns:
             Vec: The vector representation of the configuration.
@@ -55,22 +54,20 @@ class RobotConfiguration:
         return np.array(vector, float)
 
     def useConfiguration(self, robot: Robot):
-        """Uses the configuration to set the pose of the robot.
+        """Applies the configuration to the robot.
 
         Args:
             robot (Robot): Robot to set configuration.
         """
-        # check compatibility
-        for joint in robot.joints:
-            if joint.name not in self.joint_configs:
-                raise ValueError(
-                    "This configuration is incompatible with the given robot."
-                )
-
         # set configuration
         robot.xyz[:2] = self.base_position
         robot.rpy[2] = self.base_rotation
         for joint in robot.joints:
+            # check compatibility
+            if joint.name not in self.joint_configs:
+                raise ValueError(
+                    "This configuration is incompatible with the given robot."
+                )
             joint.theta = self.joint_configs[joint.name]
 
 
@@ -92,9 +89,8 @@ def IsCollision(robot: Robot, world: World) -> bool:
 def IsPoseCollison(
     robot: Robot, configuration: RobotConfiguration, world: World
 ) -> bool:
-    """Returns whether the robot in the given configuration is
-    in collision.
-    May call `CollisionLinkFK` and `CollisionJointFK`.
+    """Returns whether the robot in the given configuration is in collision. May call
+    `CollisionLinkFK` and `CollisionJointFK`.
 
     Args:
         robot (Robot): Robot to check collision for.
@@ -131,8 +127,8 @@ def IsPoseCollison(
 def CollisionJointFK(
     mstack: Mat4, joint: Joint, configuration: RobotConfiguration, world: World
 ) -> bool:
-    """Checks whether the joint's descendants are in collision.
-    Updates mstack and calls `CollisionLinkFK` for the child link.
+    """Checks whether the joint's descendants are in collision. Updates mstack and calls
+    `CollisionLinkFK` for the child link.
 
     Args:
         mstack (Mat4): Current transformation matrix on stack.
@@ -153,11 +149,12 @@ def CollisionJointFK(
     m[0:3, 3] = joint.xyz
 
     # apply joint configuration
+    theta = configuration.joint_configs[joint.name]
     q = np.identity(4)
     if joint.type == Joint.JointType.PRISMATIC:
-        m[0:3, 3] += joint.axis * joint.theta
+        m[0:3, 3] += joint.axis * theta
     else:
-        quat = [*(np.sin(joint.theta / 2) * joint.axis), np.cos(joint.theta / 2)]
+        quat = [*(np.sin(theta / 2) * joint.axis), np.cos(theta / 2)]
         q[0:3, 0:3] = R.from_quat(quat).as_matrix()
     m = m @ q
 
@@ -168,8 +165,8 @@ def CollisionJointFK(
 def CollisionLinkFK(
     mstack: Mat4, link: Link, configuration: RobotConfiguration, world: World
 ) -> bool:
-    """Checks whether the link or its descendants are in collision.
-    Calls `CollisionJointFK` for the children joints.
+    """Checks whether the link or its descendants are in collision. Calls
+    `CollisionJointFK` for the children joints.
 
     Args:
         mstack (Mat4): Current transformation matrix on stack.
@@ -181,16 +178,21 @@ def CollisionLinkFK(
         bool: Whether the link or its descendants are in collision.
     """
     # NOTE: This function is already written for you
+    # calculate affine inverse
+    inverse_transform = np.identity(4)
+    R_T = np.transpose(mstack[:3, :3])
+    inverse_transform[:3, :3] = R_T
+    inverse_transform[:3, 3] = -R_T @ mstack[:3, 3]
 
     # check collision of this link
-    inverse_transform = np.linalg.inv(mstack)
     for obstacle in world.obstacles:
         # transform obstacle origin to link frame
         origin_local = (inverse_transform @ obstacle.origin_homogeneous)[:3]
         # find closest point on box to obstacle
         closest = np.clip(origin_local, link.bbox[::2], link.bbox[1::2])
         # check if distance is less than radius (in collision)
-        if np.linalg.norm(closest - origin_local) <= obstacle.radius:
+        difference = closest - origin_local
+        if np.dot(difference, difference) <= obstacle.radius * obstacle.radius:
             link.bbox_geom.SetVisibility(True)
             return True
         # not in collision

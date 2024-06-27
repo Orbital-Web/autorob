@@ -31,8 +31,7 @@ class Marker:
 
 
 class World:
-    """A class for holding all the obstacles, terrain,
-    etc. that are in the world."""
+    """A class for holding all the obstacles, terrain, etc. that are in the world."""
 
     def __init__(self, name: str, obstacles: list[Obstacle] = None, size: Vec2 = None):
         self.name: str = name  # name of world

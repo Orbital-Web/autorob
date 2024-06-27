@@ -4,10 +4,8 @@ import numpy as np
 
 
 def MoveRobot(robot: Robot, direction: Vec2, speed: float):
-    """Moves the robot in the specified direction.
-    Increments `robot.xyz` by some vector v with magnitude
-    `speed`, depending on `robot.facing` and `direction`.
-    Also moves the camera.
+    """Moves the robot in the specified direction. Increments `robot.xyz` by some vector
+    v with magnitude `speed`, depending on `robot.facing` and `direction`.
 
     Args:
         robot (Robot): The robot to move.
@@ -23,12 +21,12 @@ def MoveRobot(robot: Robot, direction: Vec2, speed: float):
     robot.xyz += dxyz
 
 
-def TurnRobot(robot: Robot, direction: float, speed: float):
+def TurnRobot(robot: Robot, direction: int, speed: float):
     """Turns the robot in the specified direction.
 
     Args:
         robot (Robot): The robot to turn.
-        direction (float): Turn direction. Clockwise when positive.
+        direction (int): Turn direction. Clockwise when positive.
         speed (float): Speed of turning in rad/tick.
     """
     # only need to modify z axis rotation
@@ -40,8 +38,7 @@ def TurnRobot(robot: Robot, direction: float, speed: float):
 
 
 def TraverseJointUp(robot: Robot, color: Vec3, selected_color: Vec3):
-    """Selects the next joint down the kinematic
-    hierarchy.
+    """Selects the next joint down the kinematic hierarchy.
 
     Args:
         robot (Robot): The robot to traverse.
@@ -56,8 +53,7 @@ def TraverseJointUp(robot: Robot, color: Vec3, selected_color: Vec3):
 
 
 def TraverseJointDown(robot: Robot, color: Vec3, selected_color: Vec3):
-    """Selects the previous joint down the kinematic
-    hierarchy.
+    """Selects the previous joint down the kinematic hierarchy.
 
     Args:
         robot (Robot): The robot to traverse.
@@ -95,22 +91,21 @@ def TraverseJointAdjacent(robot: Robot, color: Vec3, selected_color: Vec3):
     robot.selected.geom.prop.SetColor(*selected_color)  # update color
 
 
-def ApplyControl(robot: Robot, direction: float, speed: float):
-    """Modifies the robot's selected joint's theta in the
-    specified direction. Turns the robot's selected joint
-    if the joint is continuous or revolute. Extends or
-    retracts the joint if the joint is prismatic.
+def ApplyControl(robot: Robot, direction: int, speed: float):
+    """Modifies the robot's selected joint's theta in the specified direction. Turns the
+    robot's selected joint if the joint is continuous or revolute. Extends or retracts
+    the joint if the joint is prismatic.
 
     Args:
         robot (Robot): The robot to control.
-        direction (float): Control direction.
+        direction (int): Control direction.
         speed (float): Speed in rad/tick or m/tick.
     """
     if robot.selected.type != Joint.JointType.FIXED:
         robot.selected.theta += direction * speed
 
 
-def TraversePathPlan(rrt: RRTInfo, target_i: int, speed: float) -> int:
+def TraversePathPlan(rrt: RRTInfo, target_i: int, direction: int, speed: float) -> int:
     """Moves the robot along the generated path plan.
 
     Args:
@@ -125,10 +120,8 @@ def TraversePathPlan(rrt: RRTInfo, target_i: int, speed: float) -> int:
     if rrt is None or len(rrt.path) <= 2:
         return 0
 
-    # teleport to start if we reached the goal
-    if target_i >= len(rrt.path):
-        rrt.path[0].configuration.useConfiguration(rrt.robot)
-        return 1
+    # clamp target
+    target_i = max(0, min(len(rrt.path) - 1, target_i))
 
     # move towards target
     qcurrent_vec = RobotConfiguration(rrt.robot).asVec()
@@ -142,4 +135,4 @@ def TraversePathPlan(rrt: RRTInfo, target_i: int, speed: float) -> int:
         return target_i
     else:
         qtarget.useConfiguration(rrt.robot)
-        return target_i + 1
+        return target_i + direction

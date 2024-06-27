@@ -45,8 +45,7 @@ class Kineval:
         world: World,
         settings: KinevalSettings,
     ):
-        """Initializes the robot, world, window, and runs any other
-        necessary functions.
+        """Initializes the robot, world, window, and runs any other necessary functions.
 
         Args:
             robot (Robot): The main robot.
@@ -80,8 +79,7 @@ class Kineval:
         self.app.exec_()
 
     def update(self):
-        """Runs all the update functions and handles continuous key
-        presses."""
+        """Runs all the update functions and handles continuous key presses."""
         # control robot with WSAD
         movement_rate = self.settings.movement_speed / self.settings.tick_rate
         if Qt.Key_W in self.window.pressed_keys:
@@ -109,7 +107,13 @@ class Kineval:
 
         # run path plan
         if Qt.Key_N in self.window.pressed_keys:
-            self.target = TraversePathPlan(self.window.rrt, self.target, movement_rate)
+            self.target = TraversePathPlan(
+                self.window.rrt, self.target, 1, movement_rate
+            )
+        elif Qt.Key_B in self.window.pressed_keys:
+            self.target = TraversePathPlan(
+                self.window.rrt, self.target, -1, movement_rate
+            )
 
         # run student functions
         StepRRT(self.window.rrt)
